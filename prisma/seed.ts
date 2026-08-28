@@ -93,6 +93,20 @@ async function main() {
     },
   })
 
+  await prisma.operator.upsert({
+    where: { email: 'admin@eeep.com' },
+    update: {
+      passwordHash: hashedPassword,
+    },
+    create: {
+      name: 'Administrador',
+      email: 'admin@eeep.com',
+      passwordHash: hashedPassword,
+      roleId: diretorRole.id,
+      isActive: true,
+    },
+  })
+
   // 3. SchoolYear
   console.log('📅 Creating school year...')
   const schoolYear = await prisma.schoolYear.upsert({

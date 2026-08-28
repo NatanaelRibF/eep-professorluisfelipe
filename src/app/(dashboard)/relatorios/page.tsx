@@ -135,7 +135,7 @@ export default function RelatoriosPage() {
       {/* Print-only section / Preview */}
       <div className="bg-white p-8 rounded-lg border shadow-sm print:shadow-none print:border-none print:p-0">
         <div className="text-center mb-8 border-b pb-6">
-          <h1 className="text-2xl font-bold uppercase text-slate-900">EEP Professor Luís Felipe</h1>
+          <h1 className="text-2xl font-bold uppercase text-slate-900">EEEP Professor Luís Felipe</h1>
           <h2 className="text-xl font-semibold mt-2 text-slate-700">Relatório Geral de Frequência</h2>
           <p className="text-sm text-slate-500 mt-1">Período: 01/08/2026 a 31/08/2026</p>
         </div>

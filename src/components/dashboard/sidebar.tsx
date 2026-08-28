@@ -114,7 +114,7 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
           <GraduationCap className={cn("text-blue-500 shrink-0", collapsed ? "size-8" : "size-6 mr-3")} />
           {!collapsed && (
             <span className="font-bold text-white truncate">
-              EEP Prof. Luís Felipe
+              EEEP Prof. Luís Felipe
             </span>
           )}
         </div>

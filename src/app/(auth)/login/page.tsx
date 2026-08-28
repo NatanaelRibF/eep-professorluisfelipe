@@ -44,7 +44,7 @@ export default function LoginPage() {
           <div className="p-8">
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                EEP Professor Luís Felipe
+                EEEP Professor Luís Felipe
               </h1>
               <p className="text-slate-500">Sistema de Gestão Escolar</p>
             </div>

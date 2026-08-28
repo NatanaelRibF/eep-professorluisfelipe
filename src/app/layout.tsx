@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "EEP Professor Luís Felipe - Sistema de Gestão Escolar",
+  title: "EEEP Professor Luís Felipe - Sistema de Gestão Escolar",
   description: "Sistema de gestão escolar para cadastro de alunos, frequência, RAC e ocorrências",
 };
 
