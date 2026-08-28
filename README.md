@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏫 Sistema de Gestão Escolar — EEP Professor Luís Felipe
 
-## Getting Started
+Sistema web completo e moderno de gestão escolar desenvolvido para a **Escola Estadual de Educação Profissional Professor Luís Felipe**.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-14%2B-black?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
+---
+
+## ✨ Funcionalidades Principais
+
+- 📊 **Dashboard Interativo**: Indicadores em tempo real, taxas de presença, gráficos de frequência diária, distribuição de RACs e ocorrências por categoria e por turma.
+- 👤 **Cadastro Completo de Alunos**: Ficha com foto, dados pessoais, contato de responsáveis, endereço e matrícula automática.
+- 📋 **Lançamento de Frequência por Disciplina**: Interface rápida de chamada para turmas do Ensino Médio com suporte a Presença, Falta e Justificativa.
+- 📝 **Registro de RAC (Acompanhamento em Sala de Aula)**: Controle de ocorrências pedagógicas e comportamentais em sala (uso de celular, dormir em sala, não realização de atividades, etc.).
+- ⚠️ **Registro de Ocorrências Disciplinares**: Registro formal de condutas (falta de fardamento, atrasos, brigas, etc.) com classificação de gravidade (Leve, Moderado, Grave) e providências adotadas.
+- 👥 **Gestão de Operadores e Perfis (RBAC)**: Perfis de acesso diferenciados para **Diretor**, **Coordenador**, **Secretário** e **Professor**.
+- 🏫 **Turmas e Séries**: Gerenciamento das séries do Ensino Médio (1ª a 3ª Série) nos turnos Manhã, Tarde e Noite, com vínculo professor-disciplina (`SubjectTeacher`).
+- 📄 **Relatórios e Impressão / PDF**: Emissão de relatórios consolidados de frequência, histórico disciplinar e fichas individuais do aluno formatadas para impressão oficial.
+
+---
+
+## 🛠️ Stack Tecnológica
+
+- **Framework**: Next.js (App Router, Server Actions & React Server Components)
+- **Linguagem**: TypeScript
+- **Estilização**: Tailwind CSS v4
+- **Componentes UI**: shadcn/ui & Radix UI primitives
+- **ORM & Banco de Dados**: Prisma ORM com PostgreSQL (Supabase)
+- **Autenticação**: NextAuth.js (Auth.js v5) com Credentials Provider & RBAC
+- **Gráficos**: Recharts
+- **Ícones**: Lucide React
+- **Hospedagem & Deploy**: Vercel & Supabase
+
+---
+
+## 🚀 Como Executar Localmente
+
+### 1. Clonar o repositório
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/NatanaelRibF/eep-professorluisfelipe.git
+cd eep-professorluisfelipe
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instalar dependências
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configurar variáveis de ambiente
+Crie um arquivo `.env` baseado no `.env.example`:
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Executar Migrations e Seed do Banco
+```bash
+npx prisma db push
+npx prisma db seed
+```
 
-## Learn More
+### 5. Iniciar o servidor de desenvolvimento
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔐 Acesso Padrão (Seed)
 
-## Deploy on Vercel
+- **Email**: `admin@eep.com`
+- **Senha**: `admin123`
+- **Perfil**: Diretor (Acesso Total)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 Licença
+
+Desenvolvido para a **EEP Professor Luís Felipe**. Todos os direitos reservados.

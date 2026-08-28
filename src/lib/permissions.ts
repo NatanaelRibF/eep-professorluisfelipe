@@ -1,0 +1,42 @@
+export const PERMISSIONS = {
+  MANAGE_STUDENTS: 'manage_students',
+  MANAGE_ATTENDANCE: 'manage_attendance',
+  MANAGE_RAC: 'manage_rac',
+  MANAGE_OCCURRENCES: 'manage_occurrences',
+  MANAGE_OPERATORS: 'manage_operators',
+  MANAGE_CLASSES: 'manage_classes',
+  MANAGE_SUBJECTS: 'manage_subjects',
+  MANAGE_SETTINGS: 'manage_settings',
+  VIEW_REPORTS: 'view_reports',
+} as const
+
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
+  'Diretor': Object.values(PERMISSIONS),
+  'Coordenador': [
+    PERMISSIONS.MANAGE_STUDENTS,
+    PERMISSIONS.MANAGE_ATTENDANCE,
+    PERMISSIONS.MANAGE_RAC,
+    PERMISSIONS.MANAGE_OCCURRENCES,
+    PERMISSIONS.MANAGE_CLASSES,
+    PERMISSIONS.MANAGE_SUBJECTS,
+    PERMISSIONS.MANAGE_SETTINGS,
+    PERMISSIONS.VIEW_REPORTS,
+  ],
+  'Secretário': [
+    PERMISSIONS.MANAGE_STUDENTS,
+    PERMISSIONS.MANAGE_OCCURRENCES,
+    PERMISSIONS.MANAGE_CLASSES,
+    PERMISSIONS.VIEW_REPORTS,
+  ],
+  'Professor': [
+    PERMISSIONS.MANAGE_ATTENDANCE,
+    PERMISSIONS.MANAGE_RAC,
+    PERMISSIONS.MANAGE_OCCURRENCES,
+  ],
+}
+
+export type Role = 'Diretor' | 'Coordenador' | 'Secretário' | 'Professor' | string
+
+export function hasPermission(role: string, permission: string): boolean {
+  return ROLE_PERMISSIONS[role]?.includes(permission) ?? false
+}

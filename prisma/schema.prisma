@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model OperatorRole {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  permissions Json       @default("[]")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  operators   Operator[]
+
+  @@map("operator_roles")
+}
+
+model Operator {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String           @map("password_hash")
+  roleId          String           @map("role_id")
+  role            OperatorRole     @relation(fields: [roleId], references: [id])
+  avatarUrl       String?          @map("avatar_url")
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  attendances     Attendance[]
+  racs            RAC[]
+  occurrences     Occurrence[]
+  subjectTeachers SubjectTeacher[]
+
+  @@map("operators")
+}
+
+model Student {
+  id                 String       @id @default(cuid())
+  registrationNumber String       @unique @map("registration_number")
+  name               String
+  birthDate          DateTime?    @map("birth_date")
+  photoUrl           String?      @map("photo_url")
+  guardianName       String?      @map("guardian_name")
+  guardianPhone      String?      @map("guardian_phone")
+  address            String?
+  city               String?
+  neighborhood       String?
+  isActive           Boolean      @default(true) @map("is_active")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  enrollments Enrollment[]
+
+  @@map("students")
+}
+
+model SchoolYear {
+  id        String       @id @default(cuid())
+  year      Int          @unique
+  isCurrent Boolean      @default(false) @map("is_current")
+  startDate DateTime?    @map("start_date")
+  endDate   DateTime?    @map("end_date")
+  classes   ClassGroup[]
+
+  @@map("school_years")
+}
+
+model Grade {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  level       String       @default("MEDIO")
+  orderNumber Int          @map("order_number")
+  classes     ClassGroup[]
+
+  @@map("grades")
+}
+
+model Subject {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  abbreviation    String?
+  isActive        Boolean          @default(true) @map("is_active")
+  attendances     Attendance[]
+  subjectTeachers SubjectTeacher[]
+
+  @@map("subjects")
+}
+
+model ClassGroup {
+  id              String           @id @default(cuid())
+  name            String
+  shift           String
+  gradeId         String           @map("grade_id")
+  grade           Grade            @relation(fields: [gradeId], references: [id])
+  schoolYearId    String           @map("school_year_id")
+  schoolYear      SchoolYear       @relation(fields: [schoolYearId], references: [id])
+  enrollments     Enrollment[]
+  subjectTeachers SubjectTeacher[]
+
+  @@unique([name, gradeId, schoolYearId])
+  @@map("class_groups")
+}
+
+model SubjectTeacher {
+  id           String     @id @default(cuid())
+  subjectId    String     @map("subject_id")
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  operatorId   String     @map("operator_id")
+  operator     Operator   @relation(fields: [operatorId], references: [id])
+  classGroupId String     @map("class_group_id")
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id])
+
+  @@unique([subjectId, classGroupId])
+  @@map("subject_teachers")
+}
+
+model Enrollment {
+  id           String      @id @default(cuid())
+  studentId    String      @map("student_id")
+  student      Student     @relation(fields: [studentId], references: [id])
+  classGroupId String      @map("class_group_id")
+  classGroup   ClassGroup  @relation(fields: [classGroupId], references: [id])
+  status       String      @default("ATIVO")
+  enrolledAt   DateTime    @default(now()) @map("enrolled_at")
+
+  attendances Attendance[]
+  racs        RAC[]
+  occurrences Occurrence[]
+
+  @@unique([studentId, classGroupId])
+  @@map("enrollments")
+}
+
+model Attendance {
+  id           String     @id @default(cuid())
+  enrollmentId String     @map("enrollment_id")
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  operatorId   String     @map("operator_id")
+  operator     Operator   @relation(fields: [operatorId], references: [id])
+  subjectId    String     @map("subject_id")
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  date         DateTime   @db.Date
+  status       String
+  observation  String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@unique([enrollmentId, date, subjectId])
+  @@map("attendances")
+}
+
+model RACType {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  severity    String  @default("LEVE")
+  isActive    Boolean @default(true) @map("is_active")
+  racs        RAC[]
+
+  @@map("rac_types")
+}
+
+model RAC {
+  id           String     @id @default(cuid())
+  enrollmentId String     @map("enrollment_id")
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  operatorId   String     @map("operator_id")
+  operator     Operator   @relation(fields: [operatorId], references: [id])
+  racTypeId    String     @map("rac_type_id")
+  racType      RACType    @relation(fields: [racTypeId], references: [id])
+  date         DateTime   @db.Date
+  description  String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@map("racs")
+}
+
+model OccurrenceType {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?
+  severity    String       @default("LEVE")
+  isActive    Boolean      @default(true) @map("is_active")
+  occurrences Occurrence[]
+
+  @@map("occurrence_types")
+}
+
+model Occurrence {
+  id               String         @id @default(cuid())
+  enrollmentId     String         @map("enrollment_id")
+  enrollment       Enrollment     @relation(fields: [enrollmentId], references: [id])
+  operatorId       String         @map("operator_id")
+  operator         Operator       @relation(fields: [operatorId], references: [id])
+  occurrenceTypeId String         @map("occurrence_type_id")
+  occurrenceType   OccurrenceType @relation(fields: [occurrenceTypeId], references: [id])
+  date             DateTime       @db.Date
+  description      String?
+  actionTaken      String?        @map("action_taken")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@map("occurrences")
+}
