@@ -46,6 +46,8 @@ git clone https://github.com/NatanaelRibF/eep-professorluisfelipe.git
 cd eep-professorluisfelipe
 ```
 
+- 🚀 **Aplicação em Produção**: [https://eeep-professorluisfelipe.vercel.app](https://eeep-professorluisfelipe.vercel.app)
+
 ### 2. Instalar dependências
 ```bash
 npm install
