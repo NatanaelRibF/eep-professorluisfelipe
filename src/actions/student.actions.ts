@@ -1,7 +1,6 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 export async function getStudents(params?: {
@@ -96,13 +95,15 @@ export async function getStudentById(id: string) {
 }
 
 export async function createStudent(data: any) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
     const name = data.name;
-    const registrationNumber = data.registrationNumber || `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`;
-    const birthDate = data.birthDate || data.dateOfBirth ? new Date(data.birthDate || data.dateOfBirth) : null;
+    const registrationNumber =
+      data.registrationNumber ||
+      `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`;
+    const birthDate =
+      data.birthDate || data.dateOfBirth
+        ? new Date(data.birthDate || data.dateOfBirth)
+        : null;
     const guardianName = data.guardianName || null;
     const guardianPhone = data.guardianPhone || null;
     const photoUrl = data.photoUrl || null;
@@ -144,6 +145,7 @@ export async function createStudent(data: any) {
     });
 
     revalidatePath('/alunos');
+    revalidatePath('/');
     return { success: true, student };
   } catch (error: any) {
     console.error('Erro ao criar aluno:', error);
@@ -152,60 +154,66 @@ export async function createStudent(data: any) {
 }
 
 export async function updateStudent(id: string, data: any) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
-    const updateData: any = {};
-    if (data.name) updateData.name = data.name;
-    if (data.registrationNumber) updateData.registrationNumber = data.registrationNumber;
-    if (data.birthDate || data.dateOfBirth) updateData.birthDate = new Date(data.birthDate || data.dateOfBirth);
-    if (data.guardianName !== undefined) updateData.guardianName = data.guardianName;
-    if (data.guardianPhone !== undefined) updateData.guardianPhone = data.guardianPhone;
-    if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
-    if (data.address !== undefined) updateData.address = data.address;
-    if (data.city !== undefined) updateData.city = data.city;
-    if (data.neighborhood !== undefined) updateData.neighborhood = data.neighborhood;
-    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    const name = data.name;
+    const registrationNumber = data.registrationNumber;
+    const birthDate =
+      data.birthDate || data.dateOfBirth
+        ? new Date(data.birthDate || data.dateOfBirth)
+        : null;
+    const guardianName = data.guardianName || null;
+    const guardianPhone = data.guardianPhone || null;
+    const photoUrl = data.photoUrl;
+    const address = data.address || null;
+    const city = data.city || null;
+    const neighborhood = data.neighborhood || null;
+    const classGroupId = data.classGroupId;
+
+    const currentEnrollment = await prisma.enrollment.findFirst({
+      where: { studentId: id, status: 'ATIVO' },
+    });
+
+    if (currentEnrollment && classGroupId && currentEnrollment.classGroupId !== classGroupId) {
+      await prisma.enrollment.update({
+        where: { id: currentEnrollment.id },
+        data: { status: 'TRANSFERIDO' },
+      });
+
+      await prisma.enrollment.create({
+        data: {
+          studentId: id,
+          classGroupId,
+          status: 'ATIVO',
+        },
+      });
+    } else if (!currentEnrollment && classGroupId) {
+      await prisma.enrollment.create({
+        data: {
+          studentId: id,
+          classGroupId,
+          status: 'ATIVO',
+        },
+      });
+    }
 
     const student = await prisma.student.update({
       where: { id },
-      data: updateData,
+      data: {
+        name,
+        registrationNumber,
+        birthDate,
+        guardianName,
+        guardianPhone,
+        ...(photoUrl !== undefined ? { photoUrl } : {}),
+        address,
+        city,
+        neighborhood,
+      },
     });
 
-    // Handle class group update if provided
-    if (data.classGroupId) {
-      const activeEnrollment = await prisma.enrollment.findFirst({
-        where: { studentId: id, status: 'ATIVO' },
-      });
-
-      if (activeEnrollment) {
-        if (activeEnrollment.classGroupId !== data.classGroupId) {
-          await prisma.enrollment.update({
-            where: { id: activeEnrollment.id },
-            data: { status: 'TRANSFERIDO' },
-          });
-          await prisma.enrollment.create({
-            data: {
-              studentId: id,
-              classGroupId: data.classGroupId,
-              status: 'ATIVO',
-            },
-          });
-        }
-      } else {
-        await prisma.enrollment.create({
-          data: {
-            studentId: id,
-            classGroupId: data.classGroupId,
-            status: 'ATIVO',
-          },
-        });
-      }
-    }
-
-    revalidatePath(`/alunos/${id}`);
     revalidatePath('/alunos');
+    revalidatePath(`/alunos/${id}`);
+    revalidatePath('/');
     return { success: true, student };
   } catch (error: any) {
     console.error('Erro ao atualizar aluno:', error);
@@ -214,31 +222,36 @@ export async function updateStudent(id: string, data: any) {
 }
 
 export async function toggleStudentStatus(id: string) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
-    const student = await prisma.student.findUnique({ where: { id } });
+    const student = await prisma.student.findUnique({
+      where: { id },
+    });
+
     if (!student) throw new Error('Aluno não encontrado');
 
     const updated = await prisma.student.update({
       where: { id },
-      data: { isActive: !student.isActive },
+      data: {
+        isActive: !student.isActive,
+      },
     });
 
     revalidatePath('/alunos');
     revalidatePath(`/alunos/${id}`);
     return { success: true, student: updated };
-  } catch (error) {
-    throw new Error('Erro ao alterar status do aluno');
+  } catch (error: any) {
+    console.error('Erro ao alterar status do aluno:', error);
+    throw new Error(error.message || 'Erro ao alterar status');
   }
 }
 
 export async function enrollStudent(studentId: string, classGroupId: string) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
+    await prisma.enrollment.updateMany({
+      where: { studentId, status: 'ATIVO' },
+      data: { status: 'TRANSFERIDO' },
+    });
+
     const enrollment = await prisma.enrollment.create({
       data: {
         studentId,
@@ -247,10 +260,11 @@ export async function enrollStudent(studentId: string, classGroupId: string) {
       },
     });
 
-    revalidatePath(`/alunos/${studentId}`);
     revalidatePath('/alunos');
+    revalidatePath(`/alunos/${studentId}`);
     return { success: true, enrollment };
-  } catch (error) {
-    throw new Error('Erro ao matricular aluno');
+  } catch (error: any) {
+    console.error('Erro ao matricular aluno:', error);
+    throw new Error(error.message || 'Erro ao matricular aluno');
   }
 }

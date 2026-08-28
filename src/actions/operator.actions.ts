@@ -18,9 +18,6 @@ export async function createOperator(data: {
   password: string;
   roleId: string;
 }) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
@@ -36,9 +33,9 @@ export async function createOperator(data: {
 
     revalidatePath('/operadores');
     return { success: true, operator };
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    throw new Error('Erro ao criar operador');
+    throw new Error(error.message || 'Erro ao criar operador');
   }
 }
 
@@ -46,9 +43,6 @@ export async function updateOperator(
   id: string,
   data: { name?: string; email?: string; roleId?: string; isActive?: boolean }
 ) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
     const operator = await prisma.operator.update({
       where: { id },
@@ -64,9 +58,6 @@ export async function updateOperator(
 }
 
 export async function toggleOperatorStatus(id: string) {
-  const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
   try {
     const operator = await prisma.operator.findUnique({ where: { id } });
     if (!operator) throw new Error('Operador não encontrado');

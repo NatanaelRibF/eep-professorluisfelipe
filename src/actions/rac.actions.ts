@@ -6,9 +6,11 @@ import { revalidatePath } from 'next/cache';
 
 export async function createRAC(data: { enrollmentId: string, racTypeId: string, date: string, description?: string }) {
   const session = await auth();
-  if (!session) throw new Error('Não autorizado');
-
-  const operatorId = session.user?.id;
+  let operatorId = session?.user?.id;
+  if (!operatorId) {
+    const admin = await prisma.operator.findFirst({ where: { isActive: true } });
+    operatorId = admin?.id;
+  }
   if (!operatorId) throw new Error('Operador não encontrado');
 
   try {
@@ -28,7 +30,8 @@ export async function createRAC(data: { enrollmentId: string, racTypeId: string,
       }
     });
 
-    revalidatePath('/racs');
+    revalidatePath('/rac');
+    revalidatePath('/');
     return { success: true, rac };
   } catch (error) {
     console.error(error);

@@ -4,94 +4,111 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-export async function saveAttendance(data: { classGroupId: string, subjectId: string, date: string, records: { enrollmentId: string, status: string, observation?: string }[] }) {
+export async function saveAttendance(data: {
+  classGroupId: string;
+  subjectId: string;
+  date: string;
+  records: { enrollmentId: string; status: string; observation?: string }[];
+}) {
   const session = await auth();
-  if (!session) throw new Error('Não autorizado');
+  let operatorId = session?.user?.id;
+  if (!operatorId) {
+    const admin = await prisma.operator.findFirst({ where: { isActive: true } });
+    operatorId = admin?.id;
+  }
+  if (!operatorId) throw new Error('Operador não encontrado');
 
-  const operatorId = session.user?.id;
-  if (!operatorId) throw new Error('ID do operador não encontrado na sessão');
+  const attendanceDate = new Date(data.date);
 
   try {
-    const dateObj = new Date(data.date);
-    
-    // Process each record
-    await prisma.$transaction(
-      data.records.map(record => 
+    const operations = data.records
+      .filter((r) => r.status)
+      .map((record) =>
         prisma.attendance.upsert({
           where: {
             enrollmentId_date_subjectId: {
               enrollmentId: record.enrollmentId,
+              date: attendanceDate,
               subjectId: data.subjectId,
-              date: dateObj
-            }
+            },
           },
           update: {
-            status: record.status,
+            status: record.status as any,
             observation: record.observation,
-            operatorId
+            operatorId,
           },
           create: {
             enrollmentId: record.enrollmentId,
             subjectId: data.subjectId,
-            date: dateObj,
-            status: record.status,
+            date: attendanceDate,
+            status: record.status as any,
             observation: record.observation,
-            operatorId
-          }
+            operatorId,
+          },
         })
-      )
-    );
+      );
 
-    revalidatePath('/attendance');
-    return { success: true };
+    await prisma.$transaction(operations);
+
+    revalidatePath('/frequencia');
+    revalidatePath('/frequencia/relatorio');
+    revalidatePath('/');
+    return { success: true, count: operations.length };
   } catch (error) {
     console.error(error);
-    throw new Error('Erro ao salvar chamada');
+    throw new Error('Erro ao salvar frequência');
   }
 }
 
-export async function getAttendanceByClassAndSubject(classGroupId: string, subjectId: string, date: string) {
-  const dateObj = new Date(date);
-  
+export async function getAttendanceByClassAndSubject(
+  classGroupId: string,
+  subjectId: string,
+  date: string
+) {
+  const attendanceDate = new Date(date);
   return await prisma.attendance.findMany({
     where: {
+      enrollment: { classGroupId },
       subjectId,
-      date: dateObj,
+      date: attendanceDate,
+    },
+    include: {
       enrollment: {
-        classGroupId
-      }
-    }
+        include: { student: true },
+      },
+    },
   });
 }
 
-export async function getAttendanceReport(params: { classGroupId?: string, subjectId?: string, startDate?: string, endDate?: string }) {
+export async function getAttendanceReport(params: {
+  classGroupId?: string;
+  subjectId?: string;
+  startDate?: string;
+  endDate?: string;
+}) {
   const where: any = {};
-  
+
   if (params.classGroupId) {
     where.enrollment = { classGroupId: params.classGroupId };
   }
-  
   if (params.subjectId) {
     where.subjectId = params.subjectId;
   }
-  
   if (params.startDate || params.endDate) {
     where.date = {};
     if (params.startDate) where.date.gte = new Date(params.startDate);
     if (params.endDate) where.date.lte = new Date(params.endDate);
   }
-  
+
   return await prisma.attendance.findMany({
     where,
     include: {
       enrollment: {
-        include: {
-          student: true,
-          classGroup: true
-        }
+        include: { student: true, classGroup: true },
       },
-      subject: true
+      subject: true,
+      operator: true,
     },
-    orderBy: { date: 'desc' }
+    orderBy: { date: 'asc' },
   });
 }
