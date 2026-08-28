@@ -35,12 +35,18 @@ export default function OperadorFormClient({ roles }: { roles: any[] }) {
 
     setLoading(true);
     try {
-      await createOperator({
+      const res = await createOperator({
         name,
         email,
         password,
         roleId,
       });
+
+      if (!res.success) {
+        toast.error(res.error || "Erro ao salvar operador.");
+        return;
+      }
+
       toast.success("Operador cadastrado com sucesso!");
       router.push("/operadores");
       router.refresh();

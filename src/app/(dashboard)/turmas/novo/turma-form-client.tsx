@@ -41,12 +41,18 @@ export default function TurmaFormClient({
 
     setLoading(true);
     try {
-      await createClassGroup({
+      const res = await createClassGroup({
         name,
         gradeId,
         shift,
         schoolYearId,
       });
+
+      if (!res.success) {
+        toast.error(res.error || "Erro ao criar turma");
+        return;
+      }
+
       toast.success("Turma criada com sucesso!");
       router.push("/turmas");
       router.refresh();

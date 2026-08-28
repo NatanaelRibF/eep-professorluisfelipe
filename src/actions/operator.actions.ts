@@ -1,15 +1,19 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 
 export async function getOperators() {
-  return await prisma.operator.findMany({
-    include: { role: true },
-    orderBy: { name: 'asc' },
-  });
+  try {
+    return await prisma.operator.findMany({
+      include: { role: true },
+      orderBy: { name: 'asc' },
+    });
+  } catch (error) {
+    console.error('Error fetching operators:', error);
+    return [];
+  }
 }
 
 export async function createOperator(data: {
@@ -19,6 +23,14 @@ export async function createOperator(data: {
   roleId: string;
 }) {
   try {
+    const existing = await prisma.operator.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existing) {
+      return { success: false, error: 'Já existe um operador cadastrado com este e-mail' };
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const operator = await prisma.operator.create({
@@ -34,8 +46,8 @@ export async function createOperator(data: {
     revalidatePath('/operadores');
     return { success: true, operator };
   } catch (error: any) {
-    console.error(error);
-    throw new Error(error.message || 'Erro ao criar operador');
+    console.error('Error in createOperator:', error);
+    return { success: false, error: error.message || 'Erro ao criar operador' };
   }
 }
 
@@ -51,16 +63,16 @@ export async function updateOperator(
 
     revalidatePath('/operadores');
     return { success: true, operator };
-  } catch (error) {
-    console.error(error);
-    throw new Error('Erro ao atualizar operador');
+  } catch (error: any) {
+    console.error('Error updating operator:', error);
+    return { success: false, error: error.message || 'Erro ao atualizar operador' };
   }
 }
 
 export async function toggleOperatorStatus(id: string) {
   try {
     const operator = await prisma.operator.findUnique({ where: { id } });
-    if (!operator) throw new Error('Operador não encontrado');
+    if (!operator) return { success: false, error: 'Operador não encontrado' };
 
     const updated = await prisma.operator.update({
       where: { id },
@@ -69,13 +81,19 @@ export async function toggleOperatorStatus(id: string) {
 
     revalidatePath('/operadores');
     return { success: true, operator: updated };
-  } catch (error) {
-    throw new Error('Erro ao alterar status do operador');
+  } catch (error: any) {
+    console.error('Error toggling operator status:', error);
+    return { success: false, error: error.message || 'Erro ao alterar status' };
   }
 }
 
 export async function getOperatorRoles() {
-  return await prisma.operatorRole.findMany({
-    orderBy: { name: 'asc' },
-  });
+  try {
+    return await prisma.operatorRole.findMany({
+      orderBy: { name: 'asc' },
+    });
+  } catch (error) {
+    console.error('Error fetching operator roles:', error);
+    return [];
+  }
 }
