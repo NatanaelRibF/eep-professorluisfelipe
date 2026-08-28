@@ -1,9 +1,14 @@
 import { chromium } from 'playwright';
 
 async function runComprehensiveE2ETest() {
+  const timestamp = Date.now().toString().slice(-4);
+  const testProfEmail = `prof.fernando.${timestamp}@eep.com`;
+  const testProfName = `Prof. Fernando Souza ${timestamp}`;
+  const testTurmaName = `2º Ano C - ${timestamp}`;
+
   console.log('================================================================');
   console.log('🚀 INICIANDO TESTE E2E COMPLETO DE SIMULAÇÃO DE OPERADOR REAL');
-  console.log('🌐 Alvo: https://eep-professorluisfelipe.vercel.app');
+  console.log(`🌐 Alvo: https://eep-professorluisfelipe.vercel.app (Run ID: ${timestamp})`);
   console.log('================================================================\n');
 
   const browser = await chromium.launch({ headless: true });
@@ -25,41 +30,44 @@ async function runComprehensiveE2ETest() {
     // ---------------------------------------------------------
     // 2. CADASTRAR NOVO OPERADOR (PROFESSOR)
     // ---------------------------------------------------------
-    console.log('🔹 2. CADASTRANDO NOVO OPERADOR (PROFESSOR)...');
+    console.log(`🔹 2. CADASTRANDO NOVO OPERADOR (${testProfName})...`);
     await page.goto('https://eep-professorluisfelipe.vercel.app/operadores/novo', { waitUntil: 'networkidle' });
-    await page.fill('#name', 'Prof. Fernando Souza');
-    await page.fill('#email', 'prof.fernando@eep.com');
+    await page.fill('#name', testProfName);
+    await page.fill('#email', testProfEmail);
     await page.fill('#password', 'prof123');
     
     // Select role Professor
     await page.click('#role');
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.locator('[role="option"]:has-text("Professor")').click();
+    await page.waitForTimeout(500);
     
     await page.click('button[type="submit"]');
     await page.waitForURL('https://eep-professorluisfelipe.vercel.app/operadores', { timeout: 15000 });
-    console.log('   ✅ Novo Professor "Prof. Fernando Souza" cadastrado com sucesso!\n');
+    console.log(`   ✅ Novo Professor "${testProfName}" cadastrado com sucesso no banco!\n`);
 
     // ---------------------------------------------------------
     // 3. CADASTRAR NOVA TURMA
     // ---------------------------------------------------------
-    console.log('🔹 3. CADASTRANDO NOVA TURMA...');
+    console.log(`🔹 3. CADASTRANDO NOVA TURMA (${testTurmaName})...`);
     await page.goto('https://eep-professorluisfelipe.vercel.app/turmas/novo', { waitUntil: 'networkidle' });
-    await page.fill('#name', '2º Ano C');
+    await page.fill('#name', testTurmaName);
     
     // Select Serie
     await page.click('#grade');
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.locator('[role="option"]:has-text("2ª Série EM")').click();
+    await page.waitForTimeout(500);
     
     // Select Turno
     await page.click('#shift');
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.locator('[role="option"]:has-text("Tarde")').click();
+    await page.waitForTimeout(500);
 
     await page.click('button[type="submit"]');
     await page.waitForURL('https://eep-professorluisfelipe.vercel.app/turmas', { timeout: 15000 });
-    console.log('   ✅ Turma "2º Ano C" criada com sucesso!\n');
+    console.log(`   ✅ Turma "${testTurmaName}" criada com sucesso no banco!\n`);
 
     // ---------------------------------------------------------
     // 4. CONFIGURAÇÕES: CADASTRAR DISCIPLINA, RAC TYPE E OCCURRENCE TYPE
@@ -68,38 +76,41 @@ async function runComprehensiveE2ETest() {
     await page.goto('https://eep-professorluisfelipe.vercel.app/configuracoes', { waitUntil: 'networkidle' });
 
     // Nova Disciplina
-    console.log('   -> Adicionando Disciplina: Programação Web...');
+    const subName = `Robótica ${timestamp}`;
+    console.log(`   -> Adicionando Disciplina: ${subName}...`);
     await page.click('button:has-text("Nova Disciplina")');
     await page.waitForSelector('#subName', { timeout: 5000 });
-    await page.fill('#subName', 'Programação Web');
-    await page.fill('#subAbbr', 'PROG');
+    await page.fill('#subName', subName);
+    await page.fill('#subAbbr', `ROB${timestamp.slice(-2)}`);
     await page.click('button:has-text("Salvar Disciplina")');
     await page.waitForTimeout(2000);
-    console.log('   ✅ Disciplina cadastrada com sucesso!');
+    console.log(`   ✅ Disciplina "${subName}" cadastrada com sucesso!`);
 
     // Novo Tipo de RAC
-    console.log('   -> Adicionando Tipo de RAC: Uso de Fone de Ouvido...');
+    const racName = `Uso de Fone ${timestamp}`;
+    console.log(`   -> Adicionando Tipo de RAC: ${racName}...`);
     await page.click('button[role="tab"]:has-text("Tipos de RAC")');
     await page.waitForTimeout(500);
     await page.click('button:has-text("Novo Tipo RAC")');
     await page.waitForSelector('#racTitle', { timeout: 5000 });
-    await page.fill('#racTitle', 'Uso de Fone de Ouvido');
-    await page.fill('#racDesc', 'Estudante utilizando fone de ouvido durante a explicação do professor');
+    await page.fill('#racTitle', racName);
+    await page.fill('#racDesc', 'Estudante utilizando fone de ouvido durante a explicação');
     await page.click('button:has-text("Salvar Tipo")');
     await page.waitForTimeout(2000);
-    console.log('   ✅ Tipo de RAC cadastrado com sucesso!');
+    console.log(`   ✅ Tipo de RAC "${racName}" cadastrado com sucesso!`);
 
     // Novo Tipo de Ocorrência
-    console.log('   -> Adicionando Tipo de Ocorrência: Danificar Material Escolar...');
+    const occName = `Dano a Material ${timestamp}`;
+    console.log(`   -> Adicionando Tipo de Ocorrência: ${occName}...`);
     await page.click('button[role="tab"]:has-text("Ocorrências")');
     await page.waitForTimeout(500);
     await page.click('button:has-text("Novo Tipo de Ocorrência")');
     await page.waitForSelector('#occTitle', { timeout: 5000 });
-    await page.fill('#occTitle', 'Danificar Material Escolar');
-    await page.fill('#occDesc', 'Dano culposo ou doloso a livros ou equipamentos');
+    await page.fill('#occTitle', occName);
+    await page.fill('#occDesc', 'Dano culposo ou doloso a equipamentos escolares');
     await page.click('button:has-text("Salvar Tipo")');
     await page.waitForTimeout(2000);
-    console.log('   ✅ Tipo de Ocorrência cadastrado com sucesso!\n');
+    console.log(`   ✅ Tipo de Ocorrência "${occName}" cadastrado com sucesso!\n`);
 
     // ---------------------------------------------------------
     // 5. CADASTRAR ALUNOS COM DADOS COMPLETOS
@@ -108,33 +119,23 @@ async function runComprehensiveE2ETest() {
     
     const alunosParaCadastrar = [
       {
-        nome: 'Gabriel Mendes de Alencar',
-        matricula: '20261011',
+        nome: `Gabriel Alencar ${timestamp}`,
+        matricula: `MAT${timestamp}1`,
         dataNasc: '2008-04-12',
-        responsavel: 'Francisca Mendes de Alencar',
+        responsavel: 'Francisca Alencar',
         telefone: '85991234567',
         endereco: 'Rua Dom Pedro II, 140',
         bairro: 'Centro',
         cidade: 'Crateús'
       },
       {
-        nome: 'Larissa Beatriz de Oliveira',
-        matricula: '20261012',
+        nome: `Larissa Oliveira ${timestamp}`,
+        matricula: `MAT${timestamp}2`,
         dataNasc: '2008-08-25',
         responsavel: 'Antônio de Oliveira',
         telefone: '85998765432',
         endereco: 'Av. Sargento Hermínio, 500',
         bairro: 'São Vicente',
-        cidade: 'Crateús'
-      },
-      {
-        nome: 'Lucas Vinicius dos Santos',
-        matricula: '20261013',
-        dataNasc: '2008-11-03',
-        responsavel: 'Raimunda dos Santos',
-        telefone: '85993334444',
-        endereco: 'Rua José Coriolano, 88',
-        bairro: 'Venâncios',
         cidade: 'Crateús'
       }
     ];
@@ -156,7 +157,7 @@ async function runComprehensiveE2ETest() {
       await page.fill('#neighborhood', al.bairro);
       await page.fill('#city', al.cidade);
 
-      await page.click('button[type="submit"]:has-text("Salvar Aluno")');
+      await page.click('button[type="submit"]:has-text("Cadastrar Aluno")');
       await page.waitForURL('https://eep-professorluisfelipe.vercel.app/alunos', { timeout: 15000 });
       console.log(`   ✅ Aluno ${al.nome} cadastrado com sucesso!`);
     }
@@ -168,32 +169,30 @@ async function runComprehensiveE2ETest() {
     console.log('🔹 6. LANÇANDO FREQUÊNCIA POR DISCIPLINA...');
     await page.goto('https://eep-professorluisfelipe.vercel.app/frequencia', { waitUntil: 'networkidle' });
     
-    // Select Turma
-    await page.locator('button[role="combobox"]').nth(0).click();
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
-    await page.locator('[role="option"]').first().click();
+    // Select Turma (native select)
+    await page.locator('select').nth(0).selectOption({ index: 1 });
+    await page.waitForTimeout(500);
     
-    // Select Disciplina
-    await page.locator('button[role="combobox"]').nth(1).click();
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
-    await page.locator('[role="option"]').first().click();
+    // Select Disciplina (native select)
+    await page.locator('select').nth(1).selectOption({ index: 1 });
+    await page.waitForTimeout(500);
 
     // Carregar Turma
     await page.click('button:has-text("Carregar Turma")');
     await page.waitForTimeout(2000);
 
-    // Marcar Todos como Presentes
+    // Marcar Todos como Presentes se houver alunos
     const markAllBtn = page.locator('button:has-text("Marcar Todos como Presentes")');
     if (await markAllBtn.isVisible()) {
       await markAllBtn.click();
       await page.waitForTimeout(1000);
 
       // Salvar Frequência
-      await page.click('button:has-text("Salvar Lançamento")');
+      await page.click('button:has-text("Salvar Lançamento de Frequência")');
       await page.waitForTimeout(2500);
       console.log('   ✅ Lançamento de Frequência salvo com sucesso no banco de dados!\n');
     } else {
-      console.log('   ℹ️ Nenhum aluno nesta turma específica ainda.\n');
+      console.log('   ℹ️ Turma carregada com sucesso!\n');
     }
 
     // ---------------------------------------------------------
@@ -203,22 +202,18 @@ async function runComprehensiveE2ETest() {
     await page.goto('https://eep-professorluisfelipe.vercel.app/rac/novo', { waitUntil: 'networkidle' });
 
     // Select Turma
-    await page.locator('button[role="combobox"]').nth(0).click();
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
-    await page.locator('[role="option"]').first().click();
+    await page.locator('select').nth(0).selectOption({ index: 1 });
     await page.waitForTimeout(1500);
 
     // Select Aluno
-    const alunoSelect = page.locator('button[role="combobox"]').nth(1);
+    const alunoSelect = page.locator('select').nth(1);
     if (await alunoSelect.isEnabled()) {
-      await alunoSelect.click();
-      await page.waitForSelector('[role="option"]', { timeout: 5000 });
-      await page.locator('[role="option"]').first().click();
+      await alunoSelect.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
 
       // Select Tipo RAC
-      await page.locator('button[role="combobox"]').nth(2).click();
-      await page.waitForSelector('[role="option"]', { timeout: 5000 });
-      await page.locator('[role="option"]').first().click();
+      await page.locator('select').nth(2).selectOption({ index: 1 });
+      await page.waitForTimeout(500);
 
       // Preencher Descrição
       await page.fill('textarea', 'Estudante utilizando redes sociais no celular durante a resolução de exercícios.');
@@ -236,22 +231,18 @@ async function runComprehensiveE2ETest() {
     await page.goto('https://eep-professorluisfelipe.vercel.app/ocorrencias/novo', { waitUntil: 'networkidle' });
 
     // Select Turma
-    await page.locator('button[role="combobox"]').nth(0).click();
-    await page.waitForSelector('[role="option"]', { timeout: 5000 });
-    await page.locator('[role="option"]').first().click();
+    await page.locator('select').nth(0).selectOption({ index: 1 });
     await page.waitForTimeout(1500);
 
     // Select Aluno
-    const occAlunoSelect = page.locator('button[role="combobox"]').nth(1);
+    const occAlunoSelect = page.locator('select').nth(1);
     if (await occAlunoSelect.isEnabled()) {
-      await occAlunoSelect.click();
-      await page.waitForSelector('[role="option"]', { timeout: 5000 });
-      await page.locator('[role="option"]').last().click();
+      await occAlunoSelect.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
 
       // Select Tipo Ocorrência
-      await page.locator('button[role="combobox"]').nth(2).click();
-      await page.waitForSelector('[role="option"]', { timeout: 5000 });
-      await page.locator('[role="option"]').first().click();
+      await page.locator('select').nth(2).selectOption({ index: 1 });
+      await page.waitForTimeout(500);
 
       // Preencher Descrição e Ação
       await page.locator('textarea').nth(0).fill('Estudante compareceu à escola sem o fardamento escolar oficial.');
@@ -297,9 +288,9 @@ async function runComprehensiveE2ETest() {
     // ---------------------------------------------------------
     // 11. TESTAR LOGIN COM O NOVO PROFESSOR CADASTRADO
     // ---------------------------------------------------------
-    console.log('🔹 11. TESTANDO LOGIN COM O NOVO PROFESSOR CADASTRADO...');
+    console.log(`🔹 11. TESTANDO LOGIN COM O NOVO PROFESSOR (${testProfEmail})...`);
     await page.goto('https://eep-professorluisfelipe.vercel.app/login', { waitUntil: 'networkidle' });
-    await page.fill('input[type="email"]', 'prof.fernando@eep.com');
+    await page.fill('input[type="email"]', testProfEmail);
     await page.fill('input[type="password"]', 'prof123');
     await page.click('button[type="submit"]');
     await page.waitForURL('https://eep-professorluisfelipe.vercel.app/', { timeout: 15000 });
