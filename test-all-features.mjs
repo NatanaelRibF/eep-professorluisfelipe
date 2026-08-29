@@ -216,7 +216,7 @@ async function runComprehensiveVerification() {
       await page.waitForTimeout(400);
 
       await page.fill('textarea', 'Estudante realizou todas as atividades propostas e auxiliou os colegas no laboratório.');
-      await page.click('button[type="submit"]:has-text("Salvar Registro RAC")');
+      await page.click('button[type="submit"]:has-text("Salvar Registro")');
       await page.waitForURL('https://eeep-professorluisfelipe.vercel.app/rac', { timeout: 15000 });
       console.log('   ✅ Registro de RAC salvo e listado na tabela!\n');
     }
