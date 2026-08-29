@@ -55,12 +55,13 @@ export default async function OperadoresPage() {
             <div key={op.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 border border-slate-200">
-                    {op.avatarUrl && <AvatarImage src={op.avatarUrl} alt={op.name} />}
-                    <AvatarFallback className="bg-blue-100 text-blue-800 font-bold text-xs">
-                      {getInitials(op.name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="h-12 w-12 rounded-full border border-slate-200 overflow-hidden flex items-center justify-center bg-blue-100 text-blue-800 font-bold text-xs shrink-0">
+                    {op.avatarUrl ? (
+                      <img src={op.avatarUrl} alt={op.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span>{getInitials(op.name)}</span>
+                    )}
+                  </div>
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm leading-tight">{op.name}</h4>
                     {op.nickname && (
@@ -150,12 +151,13 @@ export default async function OperadoresPage() {
               operadores.map((op) => (
                 <TableRow key={op.id} className="hover:bg-slate-50/50">
                   <TableCell>
-                    <Avatar className="h-10 w-10 border border-slate-200">
-                      {op.avatarUrl && <AvatarImage src={op.avatarUrl} alt={op.name} />}
-                      <AvatarFallback className="bg-blue-100 text-blue-800 font-bold text-xs">
-                        {getInitials(op.name)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="h-10 w-10 rounded-full border border-slate-200 overflow-hidden flex items-center justify-center bg-blue-100 text-blue-800 font-bold text-xs">
+                      {op.avatarUrl ? (
+                        <img src={op.avatarUrl} alt={op.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span>{getInitials(op.name)}</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="font-semibold text-slate-900">{op.name}</div>

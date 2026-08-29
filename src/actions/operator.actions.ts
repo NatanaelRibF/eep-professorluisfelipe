@@ -5,36 +5,48 @@ import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 
+const GESTOR_ROLES = ['Diretor', 'Coordenador', 'Secretário'];
+
 export async function getOperators() {
   try {
+    const session = await auth();
+    if (!session?.user) throw new Error('Não autorizado');
+
     return await prisma.operator.findMany({
       include: {
         role: true,
         teacherSubjects: {
-          include: { subject: true },
+          include: {
+            subject: true,
+          },
         },
       },
       orderBy: { name: 'asc' },
     });
   } catch (error) {
-    console.error('Error fetching operators:', error);
+    console.error('Error in getOperators:', error);
     return [];
   }
 }
 
 export async function getOperatorById(id: string) {
   try {
+    const session = await auth();
+    if (!session?.user) throw new Error('Não autorizado');
+
     return await prisma.operator.findUnique({
       where: { id },
       include: {
         role: true,
         teacherSubjects: {
-          include: { subject: true },
+          include: {
+            subject: true,
+          },
         },
       },
     });
   } catch (error) {
-    console.error('Error fetching operator by ID:', error);
+    console.error('Error in getOperatorById:', error);
     return null;
   }
 }
@@ -50,8 +62,12 @@ export async function createOperator(data: {
 }) {
   try {
     const session = await auth();
-    if (!session?.user || (session.user as any).role !== 'Diretor') {
-      return { success: false, error: 'Apenas a Direção Escolar tem permissão para cadastrar novos operadores.' };
+    const roleName = (session?.user as any)?.role || '';
+    if (!session?.user || !GESTOR_ROLES.includes(roleName)) {
+      return {
+        success: false,
+        error: 'Apenas o Núcleo Gestor (Diretor, Coordenador e Secretário) tem permissão para cadastrar operadores.',
+      };
     }
 
     const existing = await prisma.operator.findUnique({
@@ -108,8 +124,12 @@ export async function updateOperator(
 ) {
   try {
     const session = await auth();
-    if (!session?.user || (session.user as any).role !== 'Diretor') {
-      return { success: false, error: 'Apenas a Direção Escolar tem permissão para alterar outros operadores.' };
+    const roleName = (session?.user as any)?.role || '';
+    if (!session?.user || !GESTOR_ROLES.includes(roleName)) {
+      return {
+        success: false,
+        error: 'Apenas o Núcleo Gestor (Diretor, Coordenador e Secretário) tem permissão para gerenciar operadores.',
+      };
     }
 
     const updateData: any = {};
@@ -151,13 +171,22 @@ export async function updateOperator(
     const operator = await prisma.operator.update({
       where: { id },
       data: updateData,
+      include: {
+        role: true,
+        teacherSubjects: {
+          include: {
+            subject: true,
+          },
+        },
+      },
     });
 
     revalidatePath('/operadores');
     revalidatePath(`/operadores/${id}/editar`);
+    revalidatePath('/');
     return { success: true, operator };
   } catch (error: any) {
-    console.error('Error updating operator:', error);
+    console.error('Error in updateOperator:', error);
     return { success: false, error: error.message || 'Erro ao atualizar operador' };
   }
 }
@@ -165,12 +194,21 @@ export async function updateOperator(
 export async function toggleOperatorStatus(id: string) {
   try {
     const session = await auth();
-    if (!session?.user || (session.user as any).role !== 'Diretor') {
-      return { success: false, error: 'Apenas a Direção Escolar tem permissão para alterar o status de operadores.' };
+    const roleName = (session?.user as any)?.role || '';
+    if (!session?.user || !GESTOR_ROLES.includes(roleName)) {
+      return {
+        success: false,
+        error: 'Apenas o Núcleo Gestor pode alterar o status de operadores.',
+      };
     }
 
-    const operator = await prisma.operator.findUnique({ where: { id } });
-    if (!operator) return { success: false, error: 'Operador não encontrado' };
+    const operator = await prisma.operator.findUnique({
+      where: { id },
+    });
+
+    if (!operator) {
+      return { success: false, error: 'Operador não encontrado' };
+    }
 
     const updated = await prisma.operator.update({
       where: { id },
@@ -187,7 +225,6 @@ export async function toggleOperatorStatus(id: string) {
 
 export async function getOperatorRoles() {
   try {
-    // Ensure all roles and their updated permissions exist in the database
     await Promise.all([
       prisma.operatorRole.upsert({
         where: { name: 'Diretor' },
@@ -203,23 +240,23 @@ export async function getOperatorRoles() {
       prisma.operatorRole.upsert({
         where: { name: 'Coordenador' },
         update: {
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
         create: {
           name: 'Coordenador',
           description: 'Coordenação Pedagógica',
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
       }),
       prisma.operatorRole.upsert({
         where: { name: 'Secretário' },
         update: {
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
         create: {
           name: 'Secretário',
           description: 'Secretaria Escolar',
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
       }),
       prisma.operatorRole.upsert({
@@ -250,12 +287,11 @@ export async function getOperatorRoles() {
       orderBy: { name: 'asc' },
     });
   } catch (error) {
-    console.error('Error fetching operator roles:', error);
+    console.error('Error in getOperatorRoles:', error);
     return [];
   }
 }
 
-// Logged-in Operator Self Profile Management
 export async function getMyProfile() {
   try {
     const session = await auth();
@@ -266,7 +302,9 @@ export async function getMyProfile() {
       include: {
         role: true,
         teacherSubjects: {
-          include: { subject: true },
+          include: {
+            subject: true,
+          },
         },
       },
     });
@@ -304,7 +342,6 @@ export async function updateMyProfile(data: {
       updateData.avatarUrl = data.avatarUrl || null;
     }
 
-    // Password change verification
     if (data.newPassword && data.newPassword.trim() !== '') {
       if (!data.currentPassword) {
         return { success: false, error: 'Informe sua senha atual para definir uma nova senha.' };
@@ -332,6 +369,7 @@ export async function updateMyProfile(data: {
     });
 
     revalidatePath('/perfil');
+    revalidatePath('/operadores');
     revalidatePath('/');
     return { success: true, operator: updated };
   } catch (error: any) {

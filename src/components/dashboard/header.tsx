@@ -75,12 +75,17 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
         
         <div className="relative group">
           <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            <Avatar className="h-10 w-10 border border-slate-200">
-              {operatorAvatar && <AvatarImage src={operatorAvatar} alt={operatorName} />}
-              <AvatarFallback className="bg-blue-100 text-blue-800 font-bold">
-                {getInitials(operatorName)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="h-10 w-10 rounded-full border border-slate-200 overflow-hidden flex items-center justify-center bg-blue-100 text-blue-800 font-bold text-xs">
+              {operatorAvatar ? (
+                <img
+                  src={operatorAvatar}
+                  alt={operatorName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>{getInitials(operatorName)}</span>
+              )}
+            </div>
           </button>
           
           <div className="absolute right-0 top-full mt-2 hidden w-52 rounded-xl border border-gray-200 bg-white py-1.5 shadow-xl group-focus-within:block group-hover:block z-50 overflow-hidden">
