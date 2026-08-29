@@ -8,8 +8,13 @@ import { getClassGroups } from '@/actions/class.actions'
 
 export const dynamic = 'force-dynamic'
 
-export default async function EditarAlunoPage({ params }: { params: { id: string } }) {
-  const student = await getStudentById(params.id)
+export default async function EditarAlunoPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const student = await getStudentById(id)
   
   if (!student) {
     notFound()

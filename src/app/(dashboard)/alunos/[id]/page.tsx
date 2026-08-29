@@ -11,8 +11,13 @@ import { getStudentById } from '@/actions/student.actions'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AlunoDetalhesPage({ params }: { params: { id: string } }) {
-  const student = await getStudentById(params.id)
+export default async function AlunoDetalhesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const student = await getStudentById(id)
   
   if (!student) {
     notFound()

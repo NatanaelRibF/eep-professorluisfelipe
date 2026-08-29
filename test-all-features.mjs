@@ -145,7 +145,7 @@ async function runComprehensiveVerification() {
     // 7. CONSULTAR FICHA COMPLETA DO ALUNO E NAVEGAR NAS 4 ABAS
     // -------------------------------------------------------------------------
     console.log('🔹 7. TESTANDO FICHA DO ESTUDANTE (TODAS AS ABAS)...');
-    const firstFichaBtn = page.locator('a:has-text("Ver Ficha Completa")').first();
+    const firstFichaBtn = page.locator('a:has-text("Ver Ficha")').first();
     await firstFichaBtn.click();
     await page.waitForTimeout(2000);
 
