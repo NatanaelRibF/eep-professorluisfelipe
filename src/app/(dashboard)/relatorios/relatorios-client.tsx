@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Printer, FileText, AlertTriangle, User, ClipboardList, Filter, Search, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { Printer, FileText, AlertTriangle, User, ClipboardList, Filter, Search, RotateCcw, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,7 @@ export default function RelatoriosClient({ classes, subjects }: RelatoriosClient
         </div>
 
         {/* Report Type Selector Cards (Responsive Grid) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card 
             onClick={() => setSelectedReportType("FREQUENCIA")}
             className={`cursor-pointer transition-all ${
@@ -94,6 +95,20 @@ export default function RelatoriosClient({ classes, subjects }: RelatoriosClient
               <p className="text-[11px] text-slate-500">Anotações em sala de aula</p>
             </CardContent>
           </Card>
+
+          <Link href="/rac/notas" className="block">
+            <Card className="hover:border-amber-400 hover:bg-amber-50/50 bg-white transition-all border-amber-200 h-full shadow-sm">
+              <CardHeader className="p-3.5 sm:p-4 pb-1">
+                <CardTitle className="text-xs sm:text-sm font-bold flex items-center text-amber-900">
+                  <Award className="mr-1.5 h-4 w-4 text-amber-600" />
+                  Notas do RAC
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3.5 sm:p-4 pt-1">
+                <p className="text-[11px] text-slate-500">Boletim bimestral por turma (0-10)</p>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card 
             onClick={() => setSelectedReportType("DISCIPLINAR")}
