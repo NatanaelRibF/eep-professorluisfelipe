@@ -17,7 +17,12 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  User
+  User,
+  Sparkles,
+  CheckSquare,
+  Briefcase,
+  TrendingUp,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -68,10 +73,40 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
       show: true
     },
     {
-      title: "Imobilizados",
+      title: "PDT - Diretor de Turma",
+      href: "/pdt",
+      icon: GraduationCap,
+      show: hasPermission(userRole, 'manage_pdt') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor'
+    },
+    {
+      title: "Eletivas & Feirão",
+      href: "/eletivas",
+      icon: Sparkles,
+      show: hasPermission(userRole, 'manage_electives') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor'
+    },
+    {
+      title: "Simulados SPAECE/ENEM",
+      href: "/simulados",
+      icon: CheckSquare,
+      show: hasPermission(userRole, 'manage_exams') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor' || userRole === 'Secretário'
+    },
+    {
+      title: "Estágio Supervisionado",
+      href: "/estagio",
+      icon: Briefcase,
+      show: hasPermission(userRole, 'manage_internships') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor' || userRole === 'Secretário'
+    },
+    {
+      title: "Imobilizados & Reservas",
       href: "/imobilizados",
       icon: Projector,
       show: true
+    },
+    {
+      title: "Gestão Estratégica",
+      href: "/gestao",
+      icon: TrendingUp,
+      show: hasPermission(userRole, 'view_management') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Secretário'
     },
     {
       title: "Operadores",
@@ -121,14 +156,14 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-slate-800 px-4">
           <GraduationCap className={cn("text-blue-500 shrink-0", collapsed ? "size-8" : "size-6 mr-3")} />
           {!collapsed && (
-            <span className="font-bold text-white truncate">
+            <span className="font-bold text-white truncate text-sm">
               EEEP Prof. Luís Felipe
             </span>
           )}
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-3">
           <ul className="space-y-1 px-2">
             {navItems.filter(item => item.show).map((item) => {
               const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/');
@@ -138,15 +173,15 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
                     href={item.href}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors",
                       isActive 
-                        ? "bg-blue-800/50 text-white border-l-4 border-blue-500" 
+                        ? "bg-blue-800/60 text-white border-l-4 border-blue-500 font-semibold" 
                         : "hover:bg-slate-800 hover:text-white border-l-4 border-transparent"
                     )}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <item.icon className="size-5 shrink-0" />
-                    {!collapsed && <span>{item.title}</span>}
+                    <item.icon className="size-4.5 shrink-0" />
+                    {!collapsed && <span className="truncate">{item.title}</span>}
                   </Link>
                 </li>
               );
@@ -161,22 +196,22 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
             title={collapsed ? "Meu Perfil" : undefined}
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors",
               pathname === "/perfil"
-                ? "bg-blue-800/50 text-white border-l-4 border-blue-500"
+                ? "bg-blue-800/60 text-white border-l-4 border-blue-500"
                 : "text-slate-300 hover:bg-slate-800 hover:text-white border-l-4 border-transparent"
             )}
           >
-            <User className="size-5 shrink-0 text-blue-400" />
+            <User className="size-4.5 shrink-0 text-blue-400" />
             {!collapsed && <span>Meu Perfil</span>}
           </Link>
 
           <button
             onClick={() => signOut()}
             title={collapsed ? "Sair" : undefined}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
           >
-            <LogOut className="size-5 shrink-0" />
+            <LogOut className="size-4.5 shrink-0" />
             {!collapsed && <span>Sair</span>}
           </button>
           
@@ -184,7 +219,7 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
             onClick={() => setCollapsed(!collapsed)}
             className="mt-2 hidden w-full flex-col items-center justify-center rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-white md:flex transition-colors"
           >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
       </aside>

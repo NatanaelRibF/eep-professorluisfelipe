@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Edit, AlertCircle, FileText, Calendar, MapPin, Phone, User } from 'lucide-react'
+import { ChevronLeft, Edit, AlertCircle, FileText, Calendar, MapPin, Phone, User, GraduationCap } from 'lucide-react'
 import { format, differenceInYears } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -100,7 +100,13 @@ export default async function AlunoDetalhesPage({
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <Link href={`/pdt/dossie/${student.id}`} className="w-full sm:w-auto">
+              <Button className="w-full bg-purple-800 hover:bg-purple-700 text-white text-xs font-semibold h-10 shadow-sm">
+                <GraduationCap className="mr-1.5 h-3.5 w-3.5" />
+                Dossiê PDT
+              </Button>
+            </Link>
             <Link href={`/alunos/${student.id}/editar`} className="w-full sm:w-auto">
               <Button variant="outline" className="w-full text-xs font-semibold h-10">
                 <Edit className="mr-1.5 h-3.5 w-3.5" />

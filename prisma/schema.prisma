@@ -39,6 +39,16 @@ model Operator {
   subjectTeachers SubjectTeacher[]
   teacherSubjects TeacherSubject[]
   equipmentBookings EquipmentBooking[]
+  spaceBookings   SpaceBooking[]
+  
+  // PDT Relations
+  pdtClasses      ClassGroup[]     @relation("PDTTeacher")
+  pdtAttendances  PDTAttendanceRecord[]
+  pdtCouncils     PDTClassCouncil[]
+  
+  // Eletivas & Estagios
+  electiveSubjects ElectiveSubject[]
+  internshipsGuided StudentInternship[]
 
   @@map("operators")
 }
@@ -59,7 +69,12 @@ model Student {
   createdAt          DateTime     @default(now()) @map("created_at")
   updatedAt          DateTime     @updatedAt @map("updated_at")
 
-  enrollments Enrollment[]
+  enrollments        Enrollment[]
+  pdtDossier         PDTStudentDossier?
+  pdtAttendances     PDTAttendanceRecord[]
+  electiveEnrollments ElectiveEnrollment[]
+  examSubmissions    ExamSubmission[]
+  internships        StudentInternship[]
 
   @@map("students")
 }
@@ -117,8 +132,14 @@ model ClassGroup {
   grade           Grade            @relation(fields: [gradeId], references: [id])
   schoolYearId    String           @map("school_year_id")
   schoolYear      SchoolYear       @relation(fields: [schoolYearId], references: [id])
+  
+  // PDT Teacher assigned to this class
+  pdtId           String?          @map("pdt_id")
+  pdtTeacher      Operator?        @relation("PDTTeacher", fields: [pdtId], references: [id])
+  
   enrollments     Enrollment[]
   subjectTeachers SubjectTeacher[]
+  pdtCouncils     PDTClassCouncil[]
 
   @@unique([name, gradeId, schoolYearId])
   @@map("class_groups")
@@ -224,6 +245,10 @@ model Occurrence {
   @@map("occurrences")
 }
 
+// -----------------------------------------------------------------------------
+// MÓDULO: IMOBILIZADOS & RESERVAS (Equipamentos e Espaços Pedagógicos)
+// -----------------------------------------------------------------------------
+
 model Equipment {
   id          String             @id @default(cuid())
   name        String
@@ -261,4 +286,241 @@ model EquipmentBooking {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   @@map("equipment_bookings")
+}
+
+model SchoolSpace {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  code        String?        @unique
+  category    String         @default("Laboratório") // LEI, Ciências, Biblioteca, Auditório, Quadra
+  capacity    Int            @default(40)
+  location    String         @default("Bloco Principal")
+  resources   String?        // ex: 35 Computadores, Projetor, Ar Condicionado
+  status      String         @default("DISPONIVEL")
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  bookings    SpaceBooking[]
+
+  @@map("school_spaces")
+}
+
+model SpaceBooking {
+  id             String      @id @default(cuid())
+  spaceId        String      @map("space_id")
+  space          SchoolSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  operatorId     String      @map("operator_id")
+  operator       Operator    @relation(fields: [operatorId], references: [id])
+  date           DateTime    @db.Date
+  classNumber    Int         @map("class_number") // 1ª Aula, 2ª Aula...
+  classGroupName String?     @map("class_group_name")
+  purpose        String      // ex: Aula prática de Biologia, Pesquisa no LEI
+  status         String      @default("CONFIRMADO") // CONFIRMADO, CANCELADO, CONCLUIDO
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@map("space_bookings")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: PDT (Projeto Professor Diretor de Turma - SEDUC Ceará)
+// -----------------------------------------------------------------------------
+
+model PDTStudentDossier {
+  id                   String   @id @default(cuid())
+  studentId            String   @unique @map("student_id")
+  student              Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  // Perfil Sociofamiliar e Saúde
+  livesWith            String?  @map("lives_with") // Pais, Avo, Mae, etc.
+  siblingsCount        Int      @default(0) @map("siblings_count")
+  transportMethod      String?  @map("transport_method") // Ônibus Escolar, A pé, Moto...
+  healthConditions     String?  @map("health_conditions") // Alergias, medicamentos, necessidades
+  familyIncomeBracket  String?  @map("family_income_bracket")
+  
+  // Acompanhamento Pedagógico e Projeto de Vida
+  strengths            String?  // Pontos fortes do estudante
+  challenges           String?  // Dificuldades de aprendizagem
+  lifeProjectGoals     String?  @map("life_project_goals") // Sonho profissional / Projeto de Vida
+  observations         String?
+  
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("pdt_student_dossiers")
+}
+
+model PDTAttendanceRecord {
+  id              String   @id @default(cuid())
+  studentId       String   @map("student_id")
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  operatorId      String   @map("operator_id") // PDT ou Coordenador
+  operator        Operator @relation(fields: [operatorId], references: [id])
+  date            DateTime @default(now())
+  guardianName    String   @map("guardian_name")
+  reason          String   // Motivo: Rendimento, Faltas, Comportamento, Elogio
+  summary         String   // Resumo da conversa e deliberações
+  actionPlan      String?  @map("action_plan") // Compromissos assumidos
+  status          String   @default("CONCLUIDO") // AGENDADO, CONCLUIDO
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("pdt_attendance_records")
+}
+
+model PDTClassCouncil {
+  id            String     @id @default(cuid())
+  classGroupId  String     @map("class_group_id")
+  classGroup    ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  operatorId    String     @map("operator_id") // PDT da turma
+  operator      Operator   @relation(fields: [operatorId], references: [id])
+  bimester      Int        @default(1) // 1º, 2º, 3º, 4º Bimestre
+  date          DateTime   @default(now())
+  highlights    String?    // Destaques positivos da turma
+  concerns      String?    // Alunos com risco de reprovação / infrequência
+  interventions String?    // Ações de intervenção pactuadas com os professores
+  minutes       String?    // Texto completo da Ata do Conselho
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  @@map("pdt_class_councils")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: ELETIVAS (Disciplinas Eletivas & Feirão de Escolha)
+// -----------------------------------------------------------------------------
+
+model ElectiveSubject {
+  id             String               @id @default(cuid())
+  name           String
+  themeArea      String               // Linguagens, Matemática, Natureza, Humanas, Tecnologia
+  description    String               // Ementa da disciplina
+  goals          String?              // Objetivos de aprendizagem
+  operatorId     String               @map("operator_id") // Professor responsável
+  operator       Operator             @relation(fields: [operatorId], references: [id])
+  maxCapacity    Int                  @default(35) @map("max_capacity")
+  semester       Int                  @default(1) // 1º ou 2º Semestre
+  year           Int                  @default(2026)
+  roomLocation   String?              @map("room_location")
+  isActive       Boolean              @default(true) @map("is_active")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  enrollments    ElectiveEnrollment[]
+
+  @@map("elective_subjects")
+}
+
+model ElectiveEnrollment {
+  id          String          @id @default(cuid())
+  studentId   String          @map("student_id")
+  student     Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  electiveId  String          @map("elective_id")
+  elective    ElectiveSubject @relation(fields: [electiveId], references: [id], onDelete: Cascade)
+  status      String          @default("MATRICULADO") // MATRICULADO, CONCLUIDO, CANCELADO
+  finalGrade  Float?          @map("final_grade")
+  enrolledAt  DateTime        @default(now()) @map("enrolled_at")
+
+  @@unique([studentId, electiveId])
+  @@map("elective_enrollments")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: SIMULADOS (SPAECE / ENEM / Descritores e Proficiência)
+// -----------------------------------------------------------------------------
+
+model Exam {
+  id             String           @id @default(cuid())
+  title          String           // ex: 1º Simulado SPAECE 2026 - Língua Portuguesa e Matemática
+  category       String           @default("SPAECE") // SPAECE, ENEM, DIAGNOSTICA
+  targetGrade    String           @default("TODAS") // 1ª Série, 2ª Série, 3ª Série, TODAS
+  date           DateTime         @db.Date
+  totalQuestions Int              @default(26) @map("total_questions")
+  answerKey      Json             // Gabarito com questões, alternativas corretas e Descritor (ex: [{ "q": 1, "answer": "B", "descriptor": "D03" }])
+  description    String?
+  isActive       Boolean          @default(true) @map("is_active")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  submissions    ExamSubmission[]
+
+  @@map("exams")
+}
+
+model ExamSubmission {
+  id              String   @id @default(cuid())
+  examId          String   @map("exam_id")
+  exam            Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId       String   @map("student_id")
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score           Float    // Pontuação final ou % de acertos
+  correctCount    Int      @map("correct_count")
+  answers         Json     // Respostas do aluno ex: { "1": "B", "2": "C" }
+  descriptorStats Json?    @map("descriptor_stats") // Desempenho por descritor ex: { "D03": { "correct": 2, "total": 3 } }
+  performanceTier String   @default("INTERMEDIARIO") // MUITO_CRITICO, CRITICO, INTERMEDIARIO, ADEQUADO
+  submittedAt     DateTime @default(now()) @map("submitted_at")
+
+  @@unique([examId, studentId])
+  @@map("exam_submissions")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: ESTÁGIO SUPERVISIONADO (Exclusivo EEEP / Cursos Técnicos)
+// -----------------------------------------------------------------------------
+
+model InternshipCompany {
+  id             String              @id @default(cuid())
+  corporateName  String              @map("corporate_name") // Razão Social
+  tradeName      String              @map("trade_name") // Nome Fantasia
+  cnpj           String?             @unique
+  contactPerson  String              @map("contact_person")
+  phone          String?
+  email          String?
+  address        String?
+  city           String              @default("Sobral")
+  industryArea   String              @default("Tecnologia e Serviços") @map("industry_area")
+  isActive       Boolean             @default(true) @map("is_active")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  internships    StudentInternship[]
+
+  @@map("internship_companies")
+}
+
+model StudentInternship {
+  id             String            @id @default(cuid())
+  studentId      String            @map("student_id")
+  student        Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  companyId      String            @map("company_id")
+  company        InternshipCompany @relation(fields: [companyId], references: [id])
+  advisorId      String            @map("advisor_id") // Professor orientador de estágio
+  advisor        Operator          @relation(fields: [advisorId], references: [id])
+  courseName     String            @default("Técnico em Informática") @map("course_name")
+  totalHours     Int               @default(400) @map("total_hours")
+  completedHours Int               @default(0) @map("completed_hours")
+  startDate      DateTime          @map("start_date") @db.Date
+  endDate        DateTime?         @map("end_date") @db.Date
+  status         String            @default("EM_ANDAMENTO") // EM_ANDAMENTO, CONCLUIDO, DESLIGADO
+  supervisorName String?           @map("supervisor_name") // Supervisor na empresa
+  finalGrade     Float?            @map("final_grade") // Nota final do estágio
+  evaluationNote String?           @map("evaluation_note")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  logs           InternshipLog[]
+
+  @@map("student_internships")
+}
+
+model InternshipLog {
+  id           String            @id @default(cuid())
+  internshipId String            @map("internship_id")
+  internship   StudentInternship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  monthYear    String            @map("month_year") // ex: "08/2026"
+  hoursLogged  Int               @map("hours_logged")
+  activities   String            // Descrição das atividades desenvolvidas no mês
+  feedback     String?           // Parecer do orientador ou supervisor
+  createdAt    DateTime          @default(now()) @map("created_at")
+
+  @@map("internship_logs")
 }
