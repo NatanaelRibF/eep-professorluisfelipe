@@ -225,6 +225,64 @@ async function main() {
     })
   }
 
+  // 9. Equipamentos / Imobilizados
+  console.log('📽️ Creating sample equipments...')
+  const equipments = [
+    {
+      code: 'PAT-PROJ-01',
+      name: 'Projetor Epson PowerLite X49 #01',
+      category: 'Projetor',
+      brand: 'Epson',
+      model: 'PowerLite X49',
+      location: 'Sala dos Professores (Armário A)',
+      description: 'Acompanha cabo HDMI, cabo de força e controle remoto.',
+    },
+    {
+      code: 'PAT-PROJ-02',
+      name: 'Projetor Epson PowerLite X49 #02',
+      category: 'Projetor',
+      brand: 'Epson',
+      model: 'PowerLite X49',
+      location: 'Coordenação Pedagógica',
+      description: 'Acompanha cabo HDMI e bolsa de transporte.',
+    },
+    {
+      code: 'PAT-SOM-01',
+      name: 'Caixa de Som Amplificada Mondial #01',
+      category: 'Caixa de Som',
+      brand: 'Mondial',
+      model: 'Connect Power Plus 400W',
+      location: 'Sala dos Professores',
+      description: 'Entrada Bluetooth, P2 e USB. Acompanha cabo de alimentação.',
+    },
+    {
+      code: 'PAT-MIC-01',
+      name: 'Microfone Sem Fio Duplo UHF #01',
+      category: 'Microfone',
+      brand: 'Kadosh',
+      model: 'K-402M',
+      location: 'Coordenação Pedagógica',
+      description: '2 bastões sem fio + receptor + fonte bivolt e pilhas recarregáveis.',
+    },
+    {
+      code: 'PAT-NOTE-01',
+      name: 'Notebook Dell Vostro 3520 #01',
+      category: 'Notebook',
+      brand: 'Dell',
+      model: 'Vostro 3520 Core i5',
+      location: 'Laboratório de Informática 1',
+      description: 'Com carregador original e mouse óptico USB.',
+    },
+  ]
+
+  for (const eq of equipments) {
+    await prisma.equipment.upsert({
+      where: { code: eq.code },
+      update: eq,
+      create: eq,
+    })
+  }
+
   console.log('✅ Seed completed successfully!')
 }
 

@@ -13,6 +13,7 @@ import {
   Settings, 
   FileBarChart,
   GraduationCap,
+  Projector,
   ChevronLeft,
   ChevronRight,
   LogOut
@@ -63,6 +64,12 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
       title: "Ocorrências",
       href: "/ocorrencias",
       icon: AlertTriangle,
+      show: true
+    },
+    {
+      title: "Imobilizados",
+      href: "/imobilizados",
+      icon: Projector,
       show: true
     },
     {

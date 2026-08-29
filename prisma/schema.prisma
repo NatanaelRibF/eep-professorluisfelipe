@@ -36,6 +36,7 @@ model Operator {
   racs            RAC[]
   occurrences     Occurrence[]
   subjectTeachers SubjectTeacher[]
+  equipmentBookings EquipmentBooking[]
 
   @@map("operators")
 }
@@ -205,4 +206,43 @@ model Occurrence {
   createdAt        DateTime       @default(now()) @map("created_at")
 
   @@map("occurrences")
+}
+
+model Equipment {
+  id          String             @id @default(cuid())
+  name        String
+  code        String             @unique
+  category    String             @default("Projetor")
+  brand       String?
+  model       String?
+  location    String             @default("Sala dos Professores")
+  status      String             @default("DISPONIVEL")
+  description String?
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  bookings    EquipmentBooking[]
+
+  @@map("equipments")
+}
+
+model EquipmentBooking {
+  id             String    @id @default(cuid())
+  equipmentId    String    @map("equipment_id")
+  equipment      Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  operatorId     String    @map("operator_id")
+  operator       Operator  @relation(fields: [operatorId], references: [id])
+  date           DateTime  @db.Date
+  classNumber    Int       @map("class_number")
+  classGroupName String?   @map("class_group_name")
+  purpose        String?
+  status         String    @default("RESERVADO")
+  checkedOutAt   DateTime? @map("checked_out_at")
+  checkedInAt    DateTime? @map("checked_in_at")
+  returnNotes    String?   @map("return_notes")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("equipment_bookings")
 }
