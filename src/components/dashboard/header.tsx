@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, LogOut } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -9,10 +9,11 @@ import { usePathname } from "next/navigation";
 interface HeaderProps {
   operatorName: string;
   operatorRole: string;
+  operatorAvatar?: string | null;
   onMenuClick: () => void;
 }
 
-export function Header({ operatorName, operatorRole, onMenuClick }: HeaderProps) {
+export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick }: HeaderProps) {
   const pathname = usePathname();
   
   // Simple breadcrumb logic based on pathname
@@ -64,7 +65,8 @@ export function Header({ operatorName, operatorRole, onMenuClick }: HeaderProps)
         <div className="relative group">
           <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
             <Avatar>
-              <AvatarFallback className="bg-blue-100 text-blue-800">
+              {operatorAvatar && <AvatarImage src={operatorAvatar} alt={operatorName} />}
+              <AvatarFallback className="bg-blue-100 text-blue-800 font-bold">
                 {getInitials(operatorName)}
               </AvatarFallback>
             </Avatar>

@@ -9,6 +9,7 @@ interface DashboardShellProps {
   user: {
     name?: string | null;
     email?: string | null;
+    image?: string | null;
     role?: string;
   };
 }
@@ -28,6 +29,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
         <Header 
           operatorName={user.name || 'Usuário'}
           operatorRole={user.role || 'teacher'}
+          operatorAvatar={user.image}
           onMenuClick={() => setIsMobileOpen(true)}
         />
         

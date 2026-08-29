@@ -21,6 +21,7 @@ export async function createOperator(data: {
   email: string;
   password: string;
   roleId: string;
+  avatarUrl?: string;
 }) {
   try {
     const existing = await prisma.operator.findUnique({
@@ -39,6 +40,7 @@ export async function createOperator(data: {
         email: data.email,
         passwordHash: hashedPassword,
         roleId: data.roleId,
+        avatarUrl: data.avatarUrl || null,
         isActive: true,
       },
     });
@@ -53,7 +55,7 @@ export async function createOperator(data: {
 
 export async function updateOperator(
   id: string,
-  data: { name?: string; email?: string; roleId?: string; isActive?: boolean }
+  data: { name?: string; email?: string; roleId?: string; avatarUrl?: string; isActive?: boolean }
 ) {
   try {
     const operator = await prisma.operator.update({

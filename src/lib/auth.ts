@@ -33,6 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: operator.id,
           name: operator.name,
           email: operator.email,
+          image: operator.avatarUrl || null,
           role: operator.role.name,
           roleId: operator.roleId,
         }
@@ -45,12 +46,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id
         token.role = (user as any).role
         token.roleId = (user as any).roleId
+        token.picture = (user as any).image
       }
       return token
     },
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.image = (token.picture as string) || null
         ;(session.user as any).role = token.role
         ;(session.user as any).roleId = token.roleId
       }
