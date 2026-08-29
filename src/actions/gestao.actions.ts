@@ -9,7 +9,6 @@ export async function getStrategicManagementData() {
       totalClasses,
       totalOperators,
       criticalAbsenceStudents,
-      examStats,
       internshipStats,
       spaceStats,
     ] = await Promise.all([
@@ -25,12 +24,6 @@ export async function getStrategicManagementData() {
         having: {
           status: { _count: { gte: 3 } },
         },
-      }),
-
-      // Simulados SPAECE / Desempenho
-      prisma.examSubmission.groupBy({
-        by: ['performanceTier'],
-        _count: { performanceTier: true },
       }),
 
       // Estágios
@@ -66,7 +59,6 @@ export async function getStrategicManagementData() {
       totalOperators,
       criticalStudentsCount: criticalAbsenceStudents.length,
       criticalStudentsList,
-      examStats,
       internshipStats,
       spaceStats,
     };

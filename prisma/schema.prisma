@@ -71,7 +71,6 @@ model Student {
   enrollments        Enrollment[]
   pdtDossier         PDTStudentDossier?
   pdtAttendances     PDTAttendanceRecord[]
-  examSubmissions    ExamSubmission[]
   internships        StudentInternship[]
 
   @@map("students")
@@ -381,45 +380,6 @@ model PDTClassCouncil {
   createdAt     DateTime   @default(now()) @map("created_at")
 
   @@map("pdt_class_councils")
-}
-
-// -----------------------------------------------------------------------------
-// MÓDULO: SIMULADOS (SPAECE / ENEM / Descritores e Proficiência)
-// -----------------------------------------------------------------------------
-
-model Exam {
-  id             String           @id @default(cuid())
-  title          String           // ex: 1º Simulado SPAECE 2026 - Língua Portuguesa e Matemática
-  category       String           @default("SPAECE") // SPAECE, ENEM, DIAGNOSTICA
-  targetGrade    String           @default("TODAS") // 1ª Série, 2ª Série, 3ª Série, TODAS
-  date           DateTime         @db.Date
-  totalQuestions Int              @default(26) @map("total_questions")
-  answerKey      Json             // Gabarito com questões, alternativas corretas e Descritor (ex: [{ "q": 1, "answer": "B", "descriptor": "D03" }])
-  description    String?
-  isActive       Boolean          @default(true) @map("is_active")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-
-  submissions    ExamSubmission[]
-
-  @@map("exams")
-}
-
-model ExamSubmission {
-  id              String   @id @default(cuid())
-  examId          String   @map("exam_id")
-  exam            Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
-  studentId       String   @map("student_id")
-  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  score           Float    // Pontuação final ou % de acertos
-  correctCount    Int      @map("correct_count")
-  answers         Json     // Respostas do aluno ex: { "1": "B", "2": "C" }
-  descriptorStats Json?    @map("descriptor_stats") // Desempenho por descritor ex: { "D03": { "correct": 2, "total": 3 } }
-  performanceTier String   @default("INTERMEDIARIO") // MUITO_CRITICO, CRITICO, INTERMEDIARIO, ADEQUADO
-  submittedAt     DateTime @default(now()) @map("submitted_at")
-
-  @@unique([examId, studentId])
-  @@map("exam_submissions")
 }
 
 // -----------------------------------------------------------------------------

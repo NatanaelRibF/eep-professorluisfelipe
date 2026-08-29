@@ -18,7 +18,6 @@ import {
   ChevronRight,
   LogOut,
   User,
-  CheckSquare,
   Briefcase,
   TrendingUp,
   BookOpen
@@ -76,12 +75,6 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
       href: "/pdt",
       icon: GraduationCap,
       show: hasPermission(userRole, 'manage_pdt') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor'
-    },
-    {
-      title: "Simulados SPAECE/ENEM",
-      href: "/simulados",
-      icon: CheckSquare,
-      show: hasPermission(userRole, 'manage_exams') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor' || userRole === 'Secretário'
     },
     {
       title: "Estágio Supervisionado",

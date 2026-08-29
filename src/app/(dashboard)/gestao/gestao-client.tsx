@@ -191,26 +191,26 @@ export default function GestaoClient({ data }: GestaoClientProps) {
           </div>
         </Card>
 
-        {/* Simulados Hub */}
+        {/* Boletim de Notas do RAC */}
         <Card className="border-slate-200 shadow-sm flex flex-col justify-between">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Award className="w-4 h-4 text-emerald-600" />
-              Simulados SPAECE / ENEM
+              <Award className="w-4 h-4 text-amber-600" />
+              Boletim de Notas do RAC
             </CardTitle>
             <CardDescription className="text-xs">
-              Avaliação por descritores e recomposição da aprendizagem.
+              Pontuação bimestral de conduta e acompanhamento por turma.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 pt-2 border-t text-xs text-slate-600">
-            <p>• Gabaritos com matriz de descritores</p>
-            <p>• Diagnóstico de habilidades críticas</p>
-            <p>• Ranking de turmas e boletins</p>
+            <p>• 10,0 pontos iniciais por bimestre</p>
+            <p>• Tolerância pedagógica nos 4 primeiros RACs</p>
+            <p>• Penalização por gravidade (Leve, Moderado, Grave)</p>
           </CardContent>
           <div className="p-4 pt-0">
-            <Link href="/simulados">
-              <Button variant="outline" size="sm" className="w-full text-xs font-bold text-emerald-800 border-emerald-200 hover:bg-emerald-50">
-                Acessar Módulo Simulados
+            <Link href="/rac/notas">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold text-amber-800 border-amber-200 hover:bg-amber-50">
+                Acessar Boletim de RAC
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             </Link>

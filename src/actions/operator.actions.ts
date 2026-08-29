@@ -192,45 +192,45 @@ export async function getOperatorRoles() {
       prisma.operatorRole.upsert({
         where: { name: 'Diretor' },
         update: {
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
         create: {
           name: 'Diretor',
           description: 'Direção Geral da Escola',
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
       }),
       prisma.operatorRole.upsert({
         where: { name: 'Coordenador' },
         update: {
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
         create: {
           name: 'Coordenador',
           description: 'Coordenação Pedagógica',
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
       }),
       prisma.operatorRole.upsert({
         where: { name: 'Secretário' },
         update: {
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
         create: {
           name: 'Secretário',
           description: 'Secretaria Escolar',
-          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships', 'view_management'],
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships', 'view_management'],
         },
       }),
       prisma.operatorRole.upsert({
         where: { name: 'Professor' },
         update: {
-          permissions: ['manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships'],
+          permissions: ['manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships'],
         },
         create: {
           name: 'Professor',
           description: 'Corpo Docente',
-          permissions: ['manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_exams', 'manage_internships'],
+          permissions: ['manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_equipment', 'view_equipment', 'manage_pdt', 'manage_internships'],
         },
       }),
       prisma.operatorRole.upsert({
