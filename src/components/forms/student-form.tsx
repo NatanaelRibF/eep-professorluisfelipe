@@ -94,9 +94,7 @@ export function StudentForm({ initialData, classGroups }: StudentFormProps) {
       id: initialData?.id,
       name: initialData?.name || '',
       cpf: initialData?.cpf || '',
-      registrationNumber:
-        initialData?.registrationNumber ||
-        `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`,
+      registrationNumber: initialData?.registrationNumber || '',
       dateOfBirth: defaultBirthDate,
       classGroupId: defaultClassGroupId,
       guardianName: initialData?.guardianName || '',
@@ -206,12 +204,12 @@ export function StudentForm({ initialData, classGroups }: StudentFormProps) {
 
           <div className="space-y-1.5">
             <Label htmlFor="registrationNumber" className="text-xs font-semibold text-slate-700">
-              Matrícula Escolar <span className="text-red-500">*</span>
+              Matrícula / Código SEDUC <span className="text-red-500">*</span>
             </Label>
             <Input
               id="registrationNumber"
               {...register('registrationNumber')}
-              placeholder="Ex: 20261001"
+              placeholder="Digite o código SEDUC do aluno"
               className="h-10 font-mono"
             />
             {errors.registrationNumber && (

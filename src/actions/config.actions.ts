@@ -3,10 +3,10 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-export async function getRACTypes() {
+export async function getRACTypes(includeInactive = false) {
   try {
     return await prisma.rACType.findMany({
-      where: { isActive: true },
+      where: includeInactive ? undefined : { isActive: true },
       orderBy: { name: 'asc' },
     });
   } catch (error) {
@@ -56,10 +56,10 @@ export async function toggleRACTypeStatus(id: string) {
   }
 }
 
-export async function getOccurrenceTypes() {
+export async function getOccurrenceTypes(includeInactive = false) {
   try {
     return await prisma.occurrenceType.findMany({
-      where: { isActive: true },
+      where: includeInactive ? undefined : { isActive: true },
       orderBy: { name: 'asc' },
     });
   } catch (error) {

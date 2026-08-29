@@ -57,10 +57,10 @@ export async function getGrades() {
   }
 }
 
-export async function getSubjects() {
+export async function getSubjects(includeInactive = false) {
   try {
     return await prisma.subject.findMany({
-      where: { isActive: true },
+      where: includeInactive ? undefined : { isActive: true },
       orderBy: { name: 'asc' },
     });
   } catch (error) {

@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 
 export default async function ConfiguracoesPage() {
   const [subjects, racTypes, occurrenceTypes, schoolYears] = await Promise.all([
-    getSubjects(),
-    getRACTypes(),
-    getOccurrenceTypes(),
+    getSubjects(true),
+    getRACTypes(true),
+    getOccurrenceTypes(true),
     getSchoolYears(),
   ]);
 
