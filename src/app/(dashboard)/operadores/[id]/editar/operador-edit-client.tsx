@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, UserCog, KeyRound } from "lucide-react";
+import { ArrowLeft, Save, Loader2, UserCog, KeyRound, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,9 +22,10 @@ import { toast } from "sonner";
 interface OperadorEditClientProps {
   operator: any;
   roles: any[];
+  subjects?: any[];
 }
 
-export default function OperadorEditClient({ operator, roles }: OperadorEditClientProps) {
+export default function OperadorEditClient({ operator, roles, subjects = [] }: OperadorEditClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +33,9 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
   const nameParts = (operator.name || "").trim().split(" ");
   const initialFirstName = nameParts[0] || "";
   const initialLastName = nameParts.slice(1).join(" ") || "";
+
+  // Initial teacher subjects
+  const initialSubjectIds = operator.teacherSubjects?.map((ts: any) => ts.subjectId) || [];
 
   const [firstName, setFirstName] = useState(initialFirstName);
   const [lastName, setLastName] = useState(initialLastName);
@@ -41,6 +45,18 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
   const [avatarUrl, setAvatarUrl] = useState(operator.avatarUrl || "");
   const [password, setPassword] = useState("");
   const [isActive, setIsActive] = useState(operator.isActive !== false);
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>(initialSubjectIds);
+
+  const selectedRoleName = roles.find((r) => r.id === roleId)?.name;
+  const isProfessor = selectedRoleName === "Professor";
+
+  const handleToggleSubject = (subjectId: string) => {
+    setSelectedSubjectIds((prev) =>
+      prev.includes(subjectId)
+        ? prev.filter((id) => id !== subjectId)
+        : [...prev, subjectId]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +77,7 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
         avatarUrl,
         password: password.trim() !== "" ? password : undefined,
         isActive,
+        subjectIds: selectedSubjectIds,
       });
 
       if (!res.success) {
@@ -92,7 +109,7 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
             Editar Operador
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
-            Atualize dados, foto, cargo e redefina a senha de acesso do usuário.
+            Atualize dados, foto, cargo, disciplinas e redefina a senha de acesso do usuário.
           </p>
         </div>
       </div>
@@ -197,6 +214,48 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
                 </Select>
               </div>
             </div>
+
+            {/* Atribuição de Disciplinas ao Professor */}
+            {(isProfessor || subjects.length > 0) && (
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-blue-600" />
+                  <Label className="font-bold text-slate-800 text-xs uppercase">
+                    Disciplinas Atribuídas a este Docente
+                  </Label>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Selecione as matérias que este professor leciona. O professor poderá ministrar estas disciplinas em qualquer turma da escola.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                  {subjects.map((sub: any) => {
+                    const isChecked = selectedSubjectIds.includes(sub.id);
+                    return (
+                      <label
+                        key={sub.id}
+                        className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-blue-50 border-blue-400 text-blue-900 font-semibold shadow-xs"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleSubject(sub.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-800 focus:ring-blue-500"
+                        />
+                        <span className="truncate">{sub.name}</span>
+                        {sub.abbreviation && (
+                          <span className="text-[10px] font-mono text-slate-400">({sub.abbreviation})</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Redefinição de Senha */}
             <div className="pt-4 border-t border-slate-100 space-y-3">

@@ -37,6 +37,7 @@ model Operator {
   racs            RAC[]
   occurrences     Occurrence[]
   subjectTeachers SubjectTeacher[]
+  teacherSubjects TeacherSubject[]
   equipmentBookings EquipmentBooking[]
 
   @@map("operators")
@@ -91,8 +92,21 @@ model Subject {
   isActive        Boolean          @default(true) @map("is_active")
   attendances     Attendance[]
   subjectTeachers SubjectTeacher[]
+  teacherSubjects TeacherSubject[]
 
   @@map("subjects")
+}
+
+model TeacherSubject {
+  id         String   @id @default(cuid())
+  operatorId String   @map("operator_id")
+  operator   Operator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  subjectId  String   @map("subject_id")
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([operatorId, subjectId])
+  @@map("teacher_subjects")
 }
 
 model ClassGroup {

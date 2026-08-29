@@ -8,7 +8,12 @@ import bcrypt from 'bcryptjs';
 export async function getOperators() {
   try {
     return await prisma.operator.findMany({
-      include: { role: true },
+      include: {
+        role: true,
+        teacherSubjects: {
+          include: { subject: true },
+        },
+      },
       orderBy: { name: 'asc' },
     });
   } catch (error) {
@@ -21,7 +26,12 @@ export async function getOperatorById(id: string) {
   try {
     return await prisma.operator.findUnique({
       where: { id },
-      include: { role: true },
+      include: {
+        role: true,
+        teacherSubjects: {
+          include: { subject: true },
+        },
+      },
     });
   } catch (error) {
     console.error('Error fetching operator by ID:', error);
@@ -36,6 +46,7 @@ export async function createOperator(data: {
   password: string;
   roleId: string;
   avatarUrl?: string;
+  subjectIds?: string[];
 }) {
   try {
     const existing = await prisma.operator.findUnique({
@@ -57,6 +68,15 @@ export async function createOperator(data: {
         roleId: data.roleId,
         avatarUrl: data.avatarUrl || null,
         isActive: true,
+        ...(data.subjectIds && data.subjectIds.length > 0
+          ? {
+              teacherSubjects: {
+                create: data.subjectIds.map((subjectId) => ({
+                  subjectId,
+                })),
+              },
+            }
+          : {}),
       },
     });
 
@@ -78,6 +98,7 @@ export async function updateOperator(
     avatarUrl?: string;
     password?: string;
     isActive?: boolean;
+    subjectIds?: string[];
   }
 ) {
   try {
@@ -104,6 +125,22 @@ export async function updateOperator(
 
     if (data.password && data.password.trim() !== '') {
       updateData.passwordHash = await bcrypt.hash(data.password, 10);
+    }
+
+    // Update teacher subjects if provided
+    if (data.subjectIds !== undefined) {
+      await prisma.teacherSubject.deleteMany({
+        where: { operatorId: id },
+      });
+
+      if (data.subjectIds.length > 0) {
+        await prisma.teacherSubject.createMany({
+          data: data.subjectIds.map((subjectId) => ({
+            operatorId: id,
+            subjectId,
+          })),
+        });
+      }
     }
 
     const operator = await prisma.operator.update({
@@ -140,6 +177,17 @@ export async function toggleOperatorStatus(id: string) {
 
 export async function getOperatorRoles() {
   try {
+    // Ensure 'Outros' role exists in database
+    await prisma.operatorRole.upsert({
+      where: { name: 'Outros' },
+      update: {},
+      create: {
+        name: 'Outros',
+        description: 'Funcionários Gerais / Apoio / Inspetores',
+        permissions: ['manage_equipment', 'view_equipment'],
+      },
+    });
+
     return await prisma.operatorRole.findMany({
       orderBy: { name: 'asc' },
     });
@@ -157,7 +205,12 @@ export async function getMyProfile() {
 
     return await prisma.operator.findUnique({
       where: { id: session.user.id },
-      include: { role: true },
+      include: {
+        role: true,
+        teacherSubjects: {
+          include: { subject: true },
+        },
+      },
     });
   } catch (error) {
     console.error('Error fetching my profile:', error);
@@ -166,6 +219,7 @@ export async function getMyProfile() {
 }
 
 export async function updateMyProfile(data: {
+  nickname?: string;
   avatarUrl?: string;
   currentPassword?: string;
   newPassword?: string;
@@ -185,6 +239,9 @@ export async function updateMyProfile(data: {
     }
 
     const updateData: any = {};
+    if (data.nickname !== undefined) {
+      updateData.nickname = data.nickname.trim() ? data.nickname.trim() : null;
+    }
     if (data.avatarUrl !== undefined) {
       updateData.avatarUrl = data.avatarUrl || null;
     }

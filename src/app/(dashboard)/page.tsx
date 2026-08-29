@@ -41,6 +41,8 @@ export default async function DashboardPage() {
     getRecentRACs(),
   ]);
 
+  const displayName = (session.user as any)?.nickname || session.user.name || 'Usuário';
+
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
@@ -48,7 +50,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900">Início</h1>
           <p className="text-slate-500 text-xs sm:text-sm mt-1">
-            Bem-vindo de volta, <span className="font-semibold text-slate-800">{session.user.name || 'Usuário'}</span>
+            Bem-vindo de volta, <span className="font-semibold text-slate-800">{displayName}</span>
           </p>
         </div>
       </div>

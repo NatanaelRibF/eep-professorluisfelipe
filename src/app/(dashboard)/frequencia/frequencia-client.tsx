@@ -11,9 +11,17 @@ import { format } from "date-fns";
 import { Loader2, CheckCircle, Check, X, AlertTriangle, Users, ClipboardCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-export default function FrequenciaClient({ classes, subjects }: { classes: any[], subjects: any[] }) {
+export default function FrequenciaClient({
+  classes,
+  subjects,
+  mySubjectIds = [],
+}: {
+  classes: any[];
+  subjects: any[];
+  mySubjectIds?: string[];
+}) {
   const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState(mySubjectIds[0] || "");
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [students, setStudents] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<Record<string, { status: string, observation: string }>>({});
@@ -158,7 +166,14 @@ export default function FrequenciaClient({ classes, subjects }: { classes: any[]
               onChange={e => setSelectedSubject(e.target.value)}
             >
               <option value="">Selecione a disciplina...</option>
-              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {subjects.map(s => {
+                const isMine = mySubjectIds.includes(s.id);
+                return (
+                  <option key={s.id} value={s.id}>
+                    {isMine ? `⭐ ${s.name} (Minha Disciplina)` : s.name}
+                  </option>
+                );
+              })}
             </select>
           </div>
 

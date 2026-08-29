@@ -1,7 +1,10 @@
 import { getOperatorById, getOperatorRoles } from "@/actions/operator.actions";
+import { getSubjects } from "@/actions/class.actions";
 import { auth } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import OperadorEditClient from "./operador-edit-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function EditarOperadorPage({
   params,
@@ -14,12 +17,15 @@ export default async function EditarOperadorPage({
   }
 
   const { id } = await params;
-  const operator = await getOperatorById(id);
-  const roles = await getOperatorRoles();
+  const [operator, roles, subjects] = await Promise.all([
+    getOperatorById(id),
+    getOperatorRoles(),
+    getSubjects(),
+  ]);
 
   if (!operator) {
     notFound();
   }
 
-  return <OperadorEditClient operator={operator} roles={roles} />;
+  return <OperadorEditClient operator={operator} roles={roles} subjects={subjects} />;
 }

@@ -40,9 +40,13 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     PERMISSIONS.MANAGE_EQUIPMENT,
     PERMISSIONS.VIEW_EQUIPMENT,
   ],
+  'Outros': [
+    PERMISSIONS.MANAGE_EQUIPMENT,
+    PERMISSIONS.VIEW_EQUIPMENT,
+  ],
 }
 
-export type Role = 'Diretor' | 'Coordenador' | 'Secretário' | 'Professor' | string
+export type Role = 'Diretor' | 'Coordenador' | 'Secretário' | 'Professor' | 'Outros' | string
 
 export function hasPermission(role: string, permission: string): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false

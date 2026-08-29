@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Shield, KeyRound, Save, Loader2, Mail, CheckCircle2, Lock } from "lucide-react";
+import { User, Shield, KeyRound, Save, Loader2, Mail, CheckCircle2, Lock, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  const [nickname, setNickname] = useState(profile.nickname || "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -46,6 +47,7 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
     setLoading(true);
     try {
       const res = await updateMyProfile({
+        nickname,
         avatarUrl,
         currentPassword: currentPassword ? currentPassword : undefined,
         newPassword: newPassword ? newPassword : undefined,
@@ -76,7 +78,7 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
           Meu Perfil & Conta
         </h1>
         <p className="text-slate-500 text-xs sm:text-sm">
-          Gerencie sua foto de perfil e altere sua senha de acesso ao sistema.
+          Gerencie seu apelido de exibição, foto de perfil e senha de acesso.
         </p>
       </div>
 
@@ -87,7 +89,7 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
               <div>
                 <CardTitle className="text-lg text-slate-900">Informações da Conta</CardTitle>
                 <CardDescription className="text-xs">
-                  Suas credenciais e foto de exibição no sistema.
+                  Suas credenciais e dados de exibição no sistema.
                 </CardDescription>
               </div>
               <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200 font-semibold text-xs px-3 py-1">
@@ -107,12 +109,30 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
               <PhotoUpload value={avatarUrl} onChange={setAvatarUrl} />
             </div>
 
-            {/* Dados Cadastrais Bloqueados para Edição pelo Próprio Operador */}
+            {/* Apelido / Como gosta de ser chamado (EDITÁVEL) */}
+            <div className="space-y-2 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+              <Label htmlFor="nickname" className="font-bold text-blue-950 flex items-center gap-1.5 text-sm">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                Meu Apelido / Como prefiro ser chamado
+              </Label>
+              <Input
+                id="nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="Ex: Prof. Carlinhos, Betinho, Luísa..."
+                className="h-11 bg-white border-blue-200 text-sm font-semibold"
+              />
+              <p className="text-xs text-blue-800">
+                Este apelido será usado nas saudações do sistema (ex: <em>&quot;Bem-vindo de volta, {nickname || profile.name}&quot;</em>).
+              </p>
+            </div>
+
+            {/* Dados Cadastrais Institucionais (Nome e E-mail gerenciados pela Direção) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="profileName" className="font-semibold text-slate-800 flex items-center gap-1.5">
+                <Label htmlFor="profileName" className="font-semibold text-slate-800 flex items-center gap-1.5 text-xs uppercase">
                   <Lock className="w-3.5 h-3.5 text-slate-400" />
-                  Nome Completo
+                  Nome Completo Cadastral
                 </Label>
                 <Input
                   id="profileName"
@@ -121,14 +141,14 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
                   className="h-11 bg-slate-100 text-slate-700 font-semibold cursor-not-allowed"
                 />
                 <p className="text-[11px] text-slate-500">
-                  O nome cadastral só pode ser alterado pela direção escolar.
+                  O nome completo oficial só pode ser alterado pela direção escolar.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="profileEmail" className="font-semibold text-slate-800 flex items-center gap-1.5">
+                <Label htmlFor="profileEmail" className="font-semibold text-slate-800 flex items-center gap-1.5 text-xs uppercase">
                   <Lock className="w-3.5 h-3.5 text-slate-400" />
-                  E-mail de Login
+                  E-mail de Acesso
                 </Label>
                 <div className="relative">
                   <Input
@@ -144,6 +164,23 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
                 </p>
               </div>
             </div>
+
+            {/* Disciplinas Vinculadas (se for professor) */}
+            {profile.teacherSubjects && profile.teacherSubjects.length > 0 && (
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <Label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs uppercase">
+                  <BookOpen className="w-4 h-4 text-blue-600" />
+                  Disciplinas que você leciona
+                </Label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {profile.teacherSubjects.map((ts: any) => (
+                    <Badge key={ts.id} className="bg-blue-100 text-blue-800 border-blue-200 text-xs py-1 px-2.5">
+                      {ts.subject?.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Alteração de Senha */}
             <div className="pt-4 border-t border-slate-100 space-y-4">

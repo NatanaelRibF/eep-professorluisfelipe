@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, ArrowLeft, Loader2, UserPlus } from "lucide-react";
+import { Save, ArrowLeft, Loader2, UserPlus, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,7 @@ import { createOperator } from "@/actions/operator.actions";
 import { PhotoUpload } from "@/components/shared/photo-upload";
 import { toast } from "sonner";
 
-export default function OperadorFormClient({ roles }: { roles: any[] }) {
+export default function OperadorFormClient({ roles, subjects = [] }: { roles: any[]; subjects?: any[] }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -29,6 +29,18 @@ export default function OperadorFormClient({ roles }: { roles: any[] }) {
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
+
+  const selectedRoleName = roles.find((r) => r.id === roleId)?.name;
+  const isProfessor = selectedRoleName === "Professor";
+
+  const handleToggleSubject = (subjectId: string) => {
+    setSelectedSubjectIds((prev) =>
+      prev.includes(subjectId)
+        ? prev.filter((id) => id !== subjectId)
+        : [...prev, subjectId]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +60,7 @@ export default function OperadorFormClient({ roles }: { roles: any[] }) {
         password,
         roleId,
         avatarUrl,
+        subjectIds: selectedSubjectIds,
       });
 
       if (!res.success) {
@@ -85,7 +98,7 @@ export default function OperadorFormClient({ roles }: { roles: any[] }) {
           <CardHeader>
             <CardTitle>Dados do Operador</CardTitle>
             <CardDescription>
-              Cadastre um novo professor ou funcionário com foto e permissões no sistema.
+              Cadastre um novo professor ou funcionário com foto, cargo e disciplinas que leciona.
             </CardDescription>
           </CardHeader>
 
@@ -176,6 +189,48 @@ export default function OperadorFormClient({ roles }: { roles: any[] }) {
                 </Select>
               </div>
             </div>
+
+            {/* Atribuição de Disciplinas ao Professor */}
+            {(isProfessor || subjects.length > 0) && (
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-blue-600" />
+                  <Label className="font-bold text-slate-800 text-xs uppercase">
+                    Disciplinas Atribuídas a este Docente
+                  </Label>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Selecione as matérias que este professor leciona. O professor poderá ministrar estas disciplinas em qualquer turma da escola.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                  {subjects.map((sub: any) => {
+                    const isChecked = selectedSubjectIds.includes(sub.id);
+                    return (
+                      <label
+                        key={sub.id}
+                        className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-blue-50 border-blue-400 text-blue-900 font-semibold shadow-xs"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleSubject(sub.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-800 focus:ring-blue-500"
+                        />
+                        <span className="truncate">{sub.name}</span>
+                        {sub.abbreviation && (
+                          <span className="text-[10px] font-mono text-slate-400">({sub.abbreviation})</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-end space-x-2 border-t pt-4">

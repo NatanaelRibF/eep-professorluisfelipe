@@ -1,17 +1,27 @@
 import { getClassGroups, getSubjects } from "@/actions/class.actions";
+import { getMyProfile } from "@/actions/operator.actions";
 import FrequenciaClient from "./frequencia-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function FrequenciaPage() {
-  const classes = await getClassGroups();
-  const subjects = await getSubjects();
+  const [classes, subjects, profile] = await Promise.all([
+    getClassGroups(),
+    getSubjects(),
+    getMyProfile(),
+  ]);
+
+  const mySubjectIds = profile?.teacherSubjects?.map((ts: any) => ts.subjectId) || [];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Lançamento de Frequência</h1>
-        <p className="text-slate-600">Selecione a turma e disciplina para registrar a chamada do dia.</p>
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-4">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900">Lançamento de Frequência</h1>
+        <p className="text-slate-500 text-xs sm:text-sm">
+          Selecione a turma e a disciplina para registrar a chamada da aula.
+        </p>
       </div>
-      <FrequenciaClient classes={classes} subjects={subjects} />
+      <FrequenciaClient classes={classes} subjects={subjects} mySubjectIds={mySubjectIds} />
     </div>
   );
 }
