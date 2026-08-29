@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useRef, useState, useEffect } from 'react'
-import Image from 'next/image'
-import { Camera, Upload, X, Loader2, RefreshCw, Check, FlipHorizontal, Sparkles } from 'lucide-react'
+import { Camera, Upload, X, Loader2, RefreshCw, Check, FlipHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -232,15 +231,13 @@ export function PhotoUpload({ value, onChange }: PhotoUploadProps) {
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
       {/* Avatar Preview Box */}
-      <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-slate-400 shadow-sm">
+      <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-100 transition-colors hover:border-slate-400 shadow-sm">
         {value ? (
           <>
-            <Image
+            <img
               src={value}
               alt="Foto do perfil"
-              fill
-              className="object-cover"
-              sizes="(max-width: 128px) 100vw, 128px"
+              className="h-full w-full object-cover"
             />
             {isUploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/60">
