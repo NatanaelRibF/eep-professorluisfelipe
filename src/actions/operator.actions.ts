@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 
@@ -13,6 +14,18 @@ export async function getOperators() {
   } catch (error) {
     console.error('Error fetching operators:', error);
     return [];
+  }
+}
+
+export async function getOperatorById(id: string) {
+  try {
+    return await prisma.operator.findUnique({
+      where: { id },
+      include: { role: true },
+    });
+  } catch (error) {
+    console.error('Error fetching operator by ID:', error);
+    return null;
   }
 }
 
@@ -55,15 +68,48 @@ export async function createOperator(data: {
 
 export async function updateOperator(
   id: string,
-  data: { name?: string; email?: string; roleId?: string; avatarUrl?: string; isActive?: boolean }
+  data: {
+    name?: string;
+    email?: string;
+    roleId?: string;
+    avatarUrl?: string;
+    password?: string;
+    isActive?: boolean;
+  }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, error: 'Não autorizado' };
+    }
+
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) {
+      // Check if another operator already has this email
+      const existing = await prisma.operator.findUnique({
+        where: { email: data.email },
+      });
+      if (existing && existing.id !== id) {
+        return { success: false, error: 'Já existe outro operador com este e-mail' };
+      }
+      updateData.email = data.email;
+    }
+    if (data.roleId !== undefined) updateData.roleId = data.roleId;
+    if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl || null;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
+    if (data.password && data.password.trim() !== '') {
+      updateData.passwordHash = await bcrypt.hash(data.password, 10);
+    }
+
     const operator = await prisma.operator.update({
       where: { id },
-      data,
+      data: updateData,
     });
 
     revalidatePath('/operadores');
+    revalidatePath(`/operadores/${id}/editar`);
     return { success: true, operator };
   } catch (error: any) {
     console.error('Error updating operator:', error);
@@ -97,5 +143,85 @@ export async function getOperatorRoles() {
   } catch (error) {
     console.error('Error fetching operator roles:', error);
     return [];
+  }
+}
+
+// Logged-in Operator Self Profile Management
+export async function getMyProfile() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return null;
+
+    return await prisma.operator.findUnique({
+      where: { id: session.user.id },
+      include: { role: true },
+    });
+  } catch (error) {
+    console.error('Error fetching my profile:', error);
+    return null;
+  }
+}
+
+export async function updateMyProfile(data: {
+  name?: string;
+  avatarUrl?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Você precisa estar conectado.' };
+    }
+
+    const operator = await prisma.operator.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!operator) {
+      return { success: false, error: 'Operador não encontrado.' };
+    }
+
+    const updateData: any = {};
+    if (data.name !== undefined && data.name.trim() !== '') {
+      updateData.name = data.name.trim();
+    }
+    if (data.avatarUrl !== undefined) {
+      updateData.avatarUrl = data.avatarUrl || null;
+    }
+
+    // Password change verification
+    if (data.newPassword && data.newPassword.trim() !== '') {
+      if (!data.currentPassword) {
+        return { success: false, error: 'Informe sua senha atual para definir uma nova senha.' };
+      }
+
+      const isCurrentValid = await bcrypt.compare(
+        data.currentPassword,
+        operator.passwordHash
+      );
+
+      if (!isCurrentValid) {
+        return { success: false, error: 'A senha atual informada está incorreta.' };
+      }
+
+      if (data.newPassword.length < 4) {
+        return { success: false, error: 'A nova senha deve ter pelo menos 4 caracteres.' };
+      }
+
+      updateData.passwordHash = await bcrypt.hash(data.newPassword, 10);
+    }
+
+    const updated = await prisma.operator.update({
+      where: { id: session.user.id },
+      data: updateData,
+    });
+
+    revalidatePath('/perfil');
+    revalidatePath('/');
+    return { success: true, operator: updated };
+  } catch (error: any) {
+    console.error('Error in updateMyProfile:', error);
+    return { success: false, error: error.message || 'Erro ao atualizar perfil.' };
   }
 }

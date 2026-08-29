@@ -16,7 +16,8 @@ import {
   Projector,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -154,7 +155,22 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-slate-800 p-2">
+        <div className="border-t border-slate-800 p-2 space-y-1">
+          <Link
+            href="/perfil"
+            title={collapsed ? "Meu Perfil" : undefined}
+            onClick={() => setMobileOpen(false)}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              pathname === "/perfil"
+                ? "bg-blue-800/50 text-white border-l-4 border-blue-500"
+                : "text-slate-300 hover:bg-slate-800 hover:text-white border-l-4 border-transparent"
+            )}
+          >
+            <User className="size-5 shrink-0 text-blue-400" />
+            {!collapsed && <span>Meu Perfil</span>}
+          </Link>
+
           <button
             onClick={() => signOut()}
             title={collapsed ? "Sair" : undefined}

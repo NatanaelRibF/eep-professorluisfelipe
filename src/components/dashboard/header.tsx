@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, LogOut } from "lucide-react";
+import Link from "next/link";
+import { Menu, LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { signOut } from "next-auth/react";
@@ -21,6 +22,10 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
     if (pathname === "/") return "Dashboard";
     const path = pathname.split("/")[1];
     if (!path) return "Dashboard";
+    if (path === "perfil") return "Meu Perfil";
+    if (path === "imobilizados") return "Imobilizados";
+    if (path === "frequencia") return "Frequência";
+    if (path === "ocorrencias") return "Ocorrências";
     return path.charAt(0).toUpperCase() + path.slice(1);
   };
 
@@ -37,6 +42,10 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
     admin: "Administrador",
     coordinator: "Coordenador",
     teacher: "Professor",
+    Diretor: "Diretor",
+    Coordenador: "Coordenador",
+    Professor: "Professor",
+    Secretário: "Secretário",
   };
 
   return (
@@ -56,15 +65,15 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
 
       <div className="flex items-center gap-4">
         <div className="hidden flex-col items-end sm:flex">
-          <span className="text-sm font-medium text-gray-900">{operatorName}</span>
-          <Badge variant="secondary" className="text-[10px] uppercase">
+          <span className="text-sm font-semibold text-gray-900">{operatorName}</span>
+          <Badge variant="secondary" className="text-[10px] font-medium bg-slate-100 text-slate-700">
             {roleLabels[operatorRole] || operatorRole}
           </Badge>
         </div>
         
         <div className="relative group">
           <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            <Avatar>
+            <Avatar className="h-10 w-10 border border-slate-200">
               {operatorAvatar && <AvatarImage src={operatorAvatar} alt={operatorName} />}
               <AvatarFallback className="bg-blue-100 text-blue-800 font-bold">
                 {getInitials(operatorName)}
@@ -72,14 +81,23 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
             </Avatar>
           </button>
           
-          <div className="absolute right-0 top-full mt-2 hidden w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg group-focus-within:block group-hover:block z-50">
-            <div className="px-4 py-2 sm:hidden border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900">{operatorName}</p>
-              <p className="text-xs text-gray-500">{roleLabels[operatorRole] || operatorRole}</p>
+          <div className="absolute right-0 top-full mt-2 hidden w-52 rounded-xl border border-gray-200 bg-white py-1.5 shadow-xl group-focus-within:block group-hover:block z-50 overflow-hidden">
+            <div className="px-4 py-2.5 sm:hidden border-b border-gray-100 bg-slate-50">
+              <p className="text-sm font-bold text-gray-900 truncate">{operatorName}</p>
+              <p className="text-xs text-blue-700 font-medium">{roleLabels[operatorRole] || operatorRole}</p>
             </div>
+
+            <Link
+              href="/perfil"
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-900 transition-colors font-medium"
+            >
+              <User className="h-4 w-4 text-blue-600" />
+              Meu Perfil & Senha
+            </Link>
+
             <button
               onClick={() => signOut()}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-slate-100 transition-colors font-medium"
             >
               <LogOut className="h-4 w-4" />
               Sair

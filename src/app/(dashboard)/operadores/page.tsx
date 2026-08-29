@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlusCircle, UserCheck, UserX, User } from "lucide-react";
+import { PlusCircle, Edit, User, Mail, Shield, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -30,21 +30,82 @@ export default async function OperadoresPage() {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-blue-900">Operadores do Sistema</h2>
-          <p className="text-slate-500 text-sm">Total de {operadores.length} operadores cadastrados</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900">Operadores do Sistema</h1>
+          <p className="text-slate-500 text-xs sm:text-sm">Total de {operadores.length} usuários e professores cadastrados</p>
         </div>
-        <Link href="/operadores/novo">
-          <Button className="bg-blue-800 hover:bg-blue-700 shadow-sm">
+        <Link href="/operadores/novo" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto bg-blue-800 hover:bg-blue-700 shadow-sm font-semibold text-sm">
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Operador
           </Button>
         </Link>
       </div>
 
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+      {/* MOBILE CARD VIEW (block md:hidden) */}
+      <div className="block md:hidden space-y-3">
+        {operadores.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 bg-white rounded-xl border border-dashed">
+            Nenhum operador encontrado.
+          </div>
+        ) : (
+          operadores.map((op) => (
+            <div key={op.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 border border-slate-200">
+                    {op.avatarUrl && <AvatarImage src={op.avatarUrl} alt={op.name} />}
+                    <AvatarFallback className="bg-blue-100 text-blue-800 font-bold text-xs">
+                      {getInitials(op.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm leading-tight">{op.name}</h4>
+                    <p className="text-xs text-slate-500 font-mono mt-0.5">{op.email}</p>
+                  </div>
+                </div>
+
+                {op.isActive ? (
+                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs font-semibold">
+                    Ativo
+                  </Badge>
+                ) : (
+                  <Badge className="bg-red-100 text-red-800 border-red-200 text-xs font-semibold">
+                    Inativo
+                  </Badge>
+                )}
+              </div>
+
+              <div className="bg-slate-50 p-2.5 rounded-lg text-xs space-y-1 text-slate-600">
+                <p className="flex items-center gap-1.5 font-medium text-slate-800">
+                  <Shield className="w-3.5 h-3.5 text-blue-600" />
+                  Cargo: {op.role?.name || "Operador"}
+                </p>
+                {op.createdAt && (
+                  <p className="flex items-center gap-1.5 text-slate-500 text-[11px]">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    Cadastrado em {format(new Date(op.createdAt), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-1 border-t border-slate-100">
+                <Link href={`/operadores/${op.id}/editar`} className="block">
+                  <Button variant="outline" size="sm" className="w-full text-xs font-bold text-blue-700 border-blue-200 hover:bg-blue-50 h-9">
+                    <Edit className="w-3.5 h-3.5 mr-1.5" />
+                    Editar Dados & Senha
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* DESKTOP TABLE VIEW (hidden md:block) */}
+      <div className="hidden md:block rounded-xl border bg-white shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -54,12 +115,13 @@ export default async function OperadoresPage() {
               <TableHead>Cargo / Perfil</TableHead>
               <TableHead>Data de Cadastro</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {operadores.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                   Nenhum operador encontrado.
                 </TableCell>
               </TableRow>
@@ -94,6 +156,14 @@ export default async function OperadoresPage() {
                         Inativo
                       </Badge>
                     )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/operadores/${op.id}/editar`}>
+                      <Button variant="outline" size="sm" className="h-8 text-xs font-bold text-blue-700 border-blue-200 hover:bg-blue-50">
+                        <Edit className="mr-1 h-3.5 w-3.5" />
+                        Editar
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))
