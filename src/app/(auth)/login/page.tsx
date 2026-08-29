@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react'
@@ -11,6 +11,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Clear any old oversized session cookies client-side
+    const cookieNames = [
+      'authjs.session-token',
+      'next-auth.session-token',
+      '__Secure-authjs.session-token',
+      '__Secure-next-auth.session-token',
+      'authjs.callback-url',
+      'next-auth.callback-url',
+      '__Secure-authjs.callback-url',
+      '__Secure-next-auth.callback-url',
+    ];
+    cookieNames.forEach((name) => {
+      document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;`;
+      for (let i = 0; i < 20; i++) {
+        document.cookie = `${name}.${i}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;`;
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
