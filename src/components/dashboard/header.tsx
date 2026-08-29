@@ -98,8 +98,8 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
             </Link>
 
             <button
-              onClick={() => signOut()}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-slate-100 transition-colors font-medium"
+              onClick={() => signOut({ callbackUrl: '/login', redirectTo: '/login' })}
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-slate-100 transition-colors font-medium cursor-pointer"
             >
               <LogOut className="h-4 w-4" />
               Sair
