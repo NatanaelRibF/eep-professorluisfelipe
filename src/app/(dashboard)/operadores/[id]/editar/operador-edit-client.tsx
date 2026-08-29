@@ -28,7 +28,14 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const [name, setName] = useState(operator.name || "");
+  // Split name if already stored as full string
+  const nameParts = (operator.name || "").trim().split(" ");
+  const initialFirstName = nameParts[0] || "";
+  const initialLastName = nameParts.slice(1).join(" ") || "";
+
+  const [firstName, setFirstName] = useState(initialFirstName);
+  const [lastName, setLastName] = useState(initialLastName);
+  const [nickname, setNickname] = useState(operator.nickname || "");
   const [email, setEmail] = useState(operator.email || "");
   const [roleId, setRoleId] = useState(operator.roleId || "");
   const [avatarUrl, setAvatarUrl] = useState(operator.avatarUrl || "");
@@ -37,15 +44,18 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !roleId) {
-      toast.error("Preencha todos os campos obrigatórios.");
+    if (!firstName.trim() || !lastName.trim() || !email || !roleId) {
+      toast.error("Preencha todos os campos obrigatórios (Nome, Sobrenome, E-mail e Cargo).");
       return;
     }
+
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
 
     setLoading(true);
     try {
       const res = await updateOperator(operator.id, {
-        name,
+        name: fullName,
+        nickname: nickname.trim() ? nickname.trim() : undefined,
         email,
         roleId,
         avatarUrl,
@@ -69,18 +79,18 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
   };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6 max-w-3xl mx-auto">
-      <div className="flex items-center space-x-2 mb-6">
+    <div className="space-y-4 md:space-y-6 max-w-3xl mx-auto">
+      <div className="flex items-center space-x-2">
         <Link href="/operadores">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900 flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900 flex items-center gap-2">
             <UserCog className="h-7 w-7 text-blue-600" />
             Editar Operador
-          </h2>
+          </h1>
           <p className="text-xs sm:text-sm text-slate-500">
             Atualize dados, foto, cargo e redefina a senha de acesso do usuário.
           </p>
@@ -99,23 +109,50 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
           <CardContent className="space-y-6">
             {/* Foto de Perfil */}
             <div className="space-y-2 pb-4 border-b border-slate-100">
-              <Label>Foto de Perfil do Operador</Label>
+              <Label className="font-semibold text-slate-800">Foto de Perfil do Operador</Label>
               <PhotoUpload value={avatarUrl} onChange={setAvatarUrl} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome Completo *</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Prof. Roberto Carlos"
-                required
-              />
+            {/* Nome, Sobrenome e Apelido */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-xs font-semibold text-slate-700">Nome *</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Ex: Carlos"
+                  required
+                  className="h-10"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-xs font-semibold text-slate-700">Sobrenome *</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Ex: Eduardo Silveira"
+                  required
+                  className="h-10"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nickname" className="text-xs font-semibold text-slate-700">Apelido / Tratamento</Label>
+                <Input
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  placeholder="Ex: Prof. Carlinhos"
+                  className="h-10"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail de Acesso *</Label>
+              <Label htmlFor="email" className="text-xs font-semibold text-slate-700">E-mail de Acesso *</Label>
               <Input
                 id="email"
                 type="email"
@@ -123,14 +160,15 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@eeep.com"
                 required
+                className="h-10"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="role">Cargo / Perfil de Acesso *</Label>
+                <Label htmlFor="role" className="text-xs font-semibold text-slate-700">Cargo / Perfil de Acesso *</Label>
                 <Select value={roleId} onValueChange={setRoleId} required>
-                  <SelectTrigger id="role">
+                  <SelectTrigger id="role" className="h-10">
                     <SelectValue placeholder="Selecione o perfil" />
                   </SelectTrigger>
                   <SelectContent>
@@ -144,12 +182,12 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="statusSelect">Status da Conta</Label>
+                <Label htmlFor="statusSelect" className="text-xs font-semibold text-slate-700">Status da Conta</Label>
                 <Select
                   value={isActive ? "ACTIVE" : "INACTIVE"}
                   onValueChange={(val) => setIsActive(val === "ACTIVE")}
                 >
-                  <SelectTrigger id="statusSelect">
+                  <SelectTrigger id="statusSelect" className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -164,7 +202,7 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
             <div className="pt-4 border-t border-slate-100 space-y-3">
               <div className="flex items-center gap-2">
                 <KeyRound className="h-4 w-4 text-blue-600" />
-                <Label htmlFor="password" className="font-semibold text-slate-800">
+                <Label htmlFor="password" className="font-semibold text-slate-800 text-xs">
                   Nova Senha de Acesso (Opcional)
                 </Label>
               </div>
@@ -174,6 +212,7 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Deixe em branco para manter a senha atual..."
+                className="h-10"
               />
               <p className="text-[11px] text-slate-500">
                 Preencha este campo apenas se desejar redefinir a senha do operador.
@@ -187,7 +226,7 @@ export default function OperadorEditClient({ operator, roles }: OperadorEditClie
                 Cancelar
               </Button>
             </Link>
-            <Button type="submit" className="bg-blue-800 hover:bg-blue-700" disabled={loading}>
+            <Button type="submit" className="bg-blue-800 hover:bg-blue-700 font-bold" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {loading ? "Salvando..." : "Salvar Alterações"}
             </Button>

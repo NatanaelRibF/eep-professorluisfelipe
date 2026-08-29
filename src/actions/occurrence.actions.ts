@@ -59,19 +59,23 @@ export async function getOccurrences(params?: {
   const pageSize = params?.pageSize || 10;
   const where: any = {};
 
-  if (params?.classGroupId) {
+  if (params?.classGroupId && params.classGroupId !== 'todas') {
     where.enrollment = { classGroupId: params.classGroupId };
   }
-  if (params?.occurrenceTypeId) {
+  if (params?.occurrenceTypeId && params.occurrenceTypeId !== 'todos') {
     where.occurrenceTypeId = params.occurrenceTypeId;
   }
-  if (params?.severity) {
+  if (params?.severity && params.severity !== 'todas') {
     where.occurrenceType = { severity: params.severity };
   }
   if (params?.startDate || params?.endDate) {
     where.date = {};
-    if (params?.startDate) where.date.gte = new Date(params.startDate);
-    if (params?.endDate) where.date.lte = new Date(params.endDate);
+    if (params?.startDate) {
+      where.date.gte = new Date(`${params.startDate}T00:00:00.000Z`);
+    }
+    if (params?.endDate) {
+      where.date.lte = new Date(`${params.endDate}T23:59:59.999Z`);
+    }
   }
 
   const [occurrences, total] = await Promise.all([

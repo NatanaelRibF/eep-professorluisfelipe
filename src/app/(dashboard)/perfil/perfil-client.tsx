@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Shield, KeyRound, Save, Loader2, Mail, CheckCircle2 } from "lucide-react";
+import { User, Shield, KeyRound, Save, Loader2, Mail, CheckCircle2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,6 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const [name, setName] = useState(profile.name || "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -28,10 +27,6 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error("O nome não pode estar em branco.");
-      return;
-    }
 
     if (newPassword) {
       if (!currentPassword) {
@@ -51,7 +46,6 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
     setLoading(true);
     try {
       const res = await updateMyProfile({
-        name,
         avatarUrl,
         currentPassword: currentPassword ? currentPassword : undefined,
         newPassword: newPassword ? newPassword : undefined,
@@ -82,7 +76,7 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
           Meu Perfil & Conta
         </h1>
         <p className="text-slate-500 text-xs sm:text-sm">
-          Gerencie sua foto de perfil, dados pessoais e altere sua senha de acesso.
+          Gerencie sua foto de perfil e altere sua senha de acesso ao sistema.
         </p>
       </div>
 
@@ -108,38 +102,45 @@ export default function PerfilClient({ profile }: PerfilClientProps) {
             <div className="space-y-2 pb-4 border-b border-slate-100">
               <Label className="font-semibold text-slate-800">Sua Foto de Perfil</Label>
               <p className="text-xs text-slate-500 mb-2">
-                Esta foto aparecerá no cabeçalho superior e no registro de suas chamadas e reservas.
+                Tire uma foto com a câmera ou escolha um arquivo. Esta foto aparecerá no cabeçalho e em seus registros.
               </p>
               <PhotoUpload value={avatarUrl} onChange={setAvatarUrl} />
             </div>
 
-            {/* Dados Pessoais */}
+            {/* Dados Cadastrais Bloqueados para Edição pelo Próprio Operador */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="profileName" className="font-semibold text-slate-800">Nome Completo *</Label>
+                <Label htmlFor="profileName" className="font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  Nome Completo
+                </Label>
                 <Input
                   id="profileName"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Seu nome completo"
-                  className="h-11"
-                  required
+                  value={profile.name}
+                  disabled
+                  className="h-11 bg-slate-100 text-slate-700 font-semibold cursor-not-allowed"
                 />
+                <p className="text-[11px] text-slate-500">
+                  O nome cadastral só pode ser alterado pela direção escolar.
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="profileEmail" className="font-semibold text-slate-800">E-mail de Login</Label>
+                <Label htmlFor="profileEmail" className="font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  E-mail de Login
+                </Label>
                 <div className="relative">
                   <Input
                     id="profileEmail"
                     value={profile.email}
                     disabled
-                    className="h-11 bg-slate-100 text-slate-500 font-mono text-xs cursor-not-allowed pl-9"
+                    className="h-11 bg-slate-100 text-slate-700 font-mono text-xs cursor-not-allowed pl-9"
                   />
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  Para alterar seu e-mail principal, solicite à direção escolar.
+                <p className="text-[11px] text-slate-500">
+                  E-mail institucional registrado na escola.
                 </p>
               </div>
             </div>

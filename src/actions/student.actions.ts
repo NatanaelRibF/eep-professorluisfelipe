@@ -7,6 +7,7 @@ export async function getStudents(params?: {
   search?: string;
   query?: string;
   classGroupId?: string;
+  shift?: string;
   status?: string;
   page?: number;
   pageSize?: number;
@@ -22,6 +23,7 @@ export async function getStudents(params?: {
     where.OR = [
       { name: { contains: search, mode: 'insensitive' } },
       { registrationNumber: { contains: search, mode: 'insensitive' } },
+      { cpf: { contains: search, mode: 'insensitive' } },
     ];
   }
 
@@ -29,12 +31,17 @@ export async function getStudents(params?: {
     where.isActive = params.status === 'active' || params.status === 'ATIVO';
   }
 
-  if (params?.classGroupId) {
+  const enrollmentConditions: any = { status: 'ATIVO' };
+  if (params?.classGroupId && params.classGroupId !== 'todas') {
+    enrollmentConditions.classGroupId = params.classGroupId;
+  }
+  if (params?.shift && params.shift !== 'todos') {
+    enrollmentConditions.classGroup = { shift: params.shift };
+  }
+
+  if (params?.classGroupId && params.classGroupId !== 'todas' || params?.shift && params.shift !== 'todos') {
     where.enrollments = {
-      some: {
-        classGroupId: params.classGroupId,
-        status: 'ATIVO',
-      },
+      some: enrollmentConditions,
     };
   }
 
@@ -97,6 +104,7 @@ export async function getStudentById(id: string) {
 export async function createStudent(data: any) {
   try {
     const name = data.name;
+    const cpf = data.cpf || null;
     const registrationNumber =
       data.registrationNumber ||
       `${new Date().getFullYear()}${Math.floor(1000 + Math.random() * 9000)}`;
@@ -108,13 +116,14 @@ export async function createStudent(data: any) {
     const guardianPhone = data.guardianPhone || null;
     const photoUrl = data.photoUrl || null;
     const address = data.address || null;
-    const city = data.city || null;
+    const city = data.city || 'Sobral';
     const neighborhood = data.neighborhood || null;
     const classGroupId = data.classGroupId;
 
     const student = await prisma.student.create({
       data: {
         name,
+        cpf,
         registrationNumber,
         birthDate,
         guardianName,
@@ -156,6 +165,7 @@ export async function createStudent(data: any) {
 export async function updateStudent(id: string, data: any) {
   try {
     const name = data.name;
+    const cpf = data.cpf || null;
     const registrationNumber = data.registrationNumber;
     const birthDate =
       data.birthDate || data.dateOfBirth
@@ -165,7 +175,7 @@ export async function updateStudent(id: string, data: any) {
     const guardianPhone = data.guardianPhone || null;
     const photoUrl = data.photoUrl;
     const address = data.address || null;
-    const city = data.city || null;
+    const city = data.city || 'Sobral';
     const neighborhood = data.neighborhood || null;
     const classGroupId = data.classGroupId;
 
@@ -200,6 +210,7 @@ export async function updateStudent(id: string, data: any) {
       where: { id },
       data: {
         name,
+        cpf,
         registrationNumber,
         birthDate,
         guardianName,
@@ -209,11 +220,17 @@ export async function updateStudent(id: string, data: any) {
         city,
         neighborhood,
       },
+      include: {
+        enrollments: {
+          include: {
+            classGroup: true,
+          },
+        },
+      },
     });
 
     revalidatePath('/alunos');
     revalidatePath(`/alunos/${id}`);
-    revalidatePath('/');
     return { success: true, student };
   } catch (error: any) {
     console.error('Erro ao atualizar aluno:', error);
@@ -223,25 +240,20 @@ export async function updateStudent(id: string, data: any) {
 
 export async function toggleStudentStatus(id: string) {
   try {
-    const student = await prisma.student.findUnique({
-      where: { id },
-    });
-
+    const student = await prisma.student.findUnique({ where: { id } });
     if (!student) throw new Error('Aluno não encontrado');
 
     const updated = await prisma.student.update({
       where: { id },
-      data: {
-        isActive: !student.isActive,
-      },
+      data: { isActive: !student.isActive },
     });
 
     revalidatePath('/alunos');
     revalidatePath(`/alunos/${id}`);
     return { success: true, student: updated };
   } catch (error: any) {
-    console.error('Erro ao alterar status do aluno:', error);
-    throw new Error(error.message || 'Erro ao alterar status');
+    console.error('Erro ao alternar status do aluno:', error);
+    throw new Error(error.message || 'Erro ao alternar status');
   }
 }
 
@@ -257,6 +269,9 @@ export async function enrollStudent(studentId: string, classGroupId: string) {
         studentId,
         classGroupId,
         status: 'ATIVO',
+      },
+      include: {
+        classGroup: true,
       },
     });
 

@@ -39,21 +39,37 @@ export async function createRAC(data: { enrollmentId: string, racTypeId: string,
   }
 }
 
-export async function getRACs(params?: { classGroupId?: string, racTypeId?: string, startDate?: string, endDate?: string, page?: number, pageSize?: number }) {
+export async function getRACs(params?: {
+  classGroupId?: string;
+  racTypeId?: string;
+  severity?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+}) {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 10;
   const where: any = {};
 
-  if (params?.classGroupId) {
+  if (params?.classGroupId && params.classGroupId !== 'todas') {
     where.enrollment = { classGroupId: params.classGroupId };
   }
-  if (params?.racTypeId) {
+  if (params?.racTypeId && params.racTypeId !== 'todos') {
     where.racTypeId = params.racTypeId;
   }
+  if (params?.severity && params.severity !== 'todas') {
+    where.racType = { severity: params.severity };
+  }
+
   if (params?.startDate || params?.endDate) {
     where.date = {};
-    if (params?.startDate) where.date.gte = new Date(params.startDate);
-    if (params?.endDate) where.date.lte = new Date(params.endDate);
+    if (params?.startDate) {
+      where.date.gte = new Date(`${params.startDate}T00:00:00.000Z`);
+    }
+    if (params?.endDate) {
+      where.date.lte = new Date(`${params.endDate}T23:59:59.999Z`);
+    }
   }
 
   const [racs, total] = await Promise.all([
@@ -63,7 +79,10 @@ export async function getRACs(params?: { classGroupId?: string, racTypeId?: stri
       take: pageSize,
       include: {
         enrollment: {
-          include: { student: true }
+          include: {
+            student: true,
+            classGroup: true,
+          }
         },
         racType: true,
         operator: true

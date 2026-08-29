@@ -23,6 +23,7 @@ model OperatorRole {
 model Operator {
   id              String           @id @default(cuid())
   name            String
+  nickname        String?
   email           String           @unique
   passwordHash    String           @map("password_hash")
   roleId          String           @map("role_id")
@@ -45,6 +46,7 @@ model Student {
   id                 String       @id @default(cuid())
   registrationNumber String       @unique @map("registration_number")
   name               String
+  cpf                String?
   birthDate          DateTime?    @map("birth_date")
   photoUrl           String?      @map("photo_url")
   guardianName       String?      @map("guardian_name")
@@ -174,7 +176,7 @@ model RAC {
   operator     Operator   @relation(fields: [operatorId], references: [id])
   racTypeId    String     @map("rac_type_id")
   racType      RACType    @relation(fields: [racTypeId], references: [id])
-  date         DateTime   @db.Date
+  date         DateTime
   description  String?
   createdAt    DateTime   @default(now()) @map("created_at")
 
@@ -200,7 +202,7 @@ model Occurrence {
   operator         Operator       @relation(fields: [operatorId], references: [id])
   occurrenceTypeId String         @map("occurrence_type_id")
   occurrenceType   OccurrenceType @relation(fields: [occurrenceTypeId], references: [id])
-  date             DateTime       @db.Date
+  date             DateTime
   description      String?
   actionTaken      String?        @map("action_taken")
   createdAt        DateTime       @default(now()) @map("created_at")

@@ -31,6 +31,7 @@ export async function getOperatorById(id: string) {
 
 export async function createOperator(data: {
   name: string;
+  nickname?: string;
   email: string;
   password: string;
   roleId: string;
@@ -50,6 +51,7 @@ export async function createOperator(data: {
     const operator = await prisma.operator.create({
       data: {
         name: data.name,
+        nickname: data.nickname || null,
         email: data.email,
         passwordHash: hashedPassword,
         roleId: data.roleId,
@@ -70,6 +72,7 @@ export async function updateOperator(
   id: string,
   data: {
     name?: string;
+    nickname?: string;
     email?: string;
     roleId?: string;
     avatarUrl?: string;
@@ -85,8 +88,8 @@ export async function updateOperator(
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
+    if (data.nickname !== undefined) updateData.nickname = data.nickname || null;
     if (data.email !== undefined) {
-      // Check if another operator already has this email
       const existing = await prisma.operator.findUnique({
         where: { email: data.email },
       });
@@ -163,7 +166,6 @@ export async function getMyProfile() {
 }
 
 export async function updateMyProfile(data: {
-  name?: string;
   avatarUrl?: string;
   currentPassword?: string;
   newPassword?: string;
@@ -183,9 +185,6 @@ export async function updateMyProfile(data: {
     }
 
     const updateData: any = {};
-    if (data.name !== undefined && data.name.trim() !== '') {
-      updateData.name = data.name.trim();
-    }
     if (data.avatarUrl !== undefined) {
       updateData.avatarUrl = data.avatarUrl || null;
     }

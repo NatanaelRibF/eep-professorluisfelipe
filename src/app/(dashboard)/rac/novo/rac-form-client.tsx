@@ -24,10 +24,10 @@ export default function RacFormClient({ classes, racTypes }: { classes: any[], r
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form State
+  // Form State (with Date and Time)
   const [enrollmentId, setEnrollmentId] = useState(paramEnrollmentId);
   const [racTypeId, setRacTypeId] = useState("");
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [dateTime, setDateTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [description, setDescription] = useState("");
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function RacFormClient({ classes, racTypes }: { classes: any[], r
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!enrollmentId || !racTypeId || !date) {
+    if (!enrollmentId || !racTypeId || !dateTime) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -73,7 +73,7 @@ export default function RacFormClient({ classes, racTypes }: { classes: any[], r
       await createRAC({
         enrollmentId,
         racTypeId,
-        date,
+        date: dateTime,
         description
       });
       toast.success("RAC registrado com sucesso!");
@@ -136,8 +136,14 @@ export default function RacFormClient({ classes, racTypes }: { classes: any[], r
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Data do Fato *</label>
-          <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-11" required />
+          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Data e Hora do Fato *</label>
+          <Input 
+            type="datetime-local" 
+            value={dateTime} 
+            onChange={e => setDateTime(e.target.value)} 
+            className="h-11 font-mono text-sm" 
+            required 
+          />
         </div>
       </div>
 
@@ -158,7 +164,7 @@ export default function RacFormClient({ classes, racTypes }: { classes: any[], r
         </Button>
         <Button type="submit" disabled={submitting} className="bg-blue-800 hover:bg-blue-700 h-11 font-bold">
           {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-          Salvar Registro
+          Salvar Registro RAC
         </Button>
       </div>
     </form>

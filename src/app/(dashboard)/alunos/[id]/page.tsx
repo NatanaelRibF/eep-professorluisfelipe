@@ -159,7 +159,11 @@ export default async function AlunoDetalhesPage({
                 Informações Pessoais
               </h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase">CPF</p>
+                  <p className="mt-1 text-sm font-mono font-medium text-slate-900">{student.cpf || 'Não informado'}</p>
+                </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase">Data de Nascimento</p>
                   <p className="mt-1 flex items-center text-sm font-medium text-slate-900">
@@ -319,7 +323,7 @@ export default async function AlunoDetalhesPage({
                         </span>
                         <span className="text-xs text-slate-500 flex items-center bg-slate-100 px-2 py-0.5 rounded">
                           <Calendar className="mr-1 h-3 w-3" />
-                          {format(new Date(rac.date), 'dd/MM/yyyy')}
+                          {format(new Date(rac.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                         </span>
                       </div>
                       <span className="text-xs text-slate-600 flex items-center font-medium">
@@ -371,7 +375,7 @@ export default async function AlunoDetalhesPage({
                         </span>
                         <span className="text-xs text-slate-500 flex items-center bg-slate-100 px-2 py-0.5 rounded">
                           <Calendar className="mr-1 h-3 w-3" />
-                          {format(new Date(occ.date), 'dd/MM/yyyy')}
+                          {format(new Date(occ.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                         </span>
                       </div>
                       <span className="text-xs text-slate-600 flex items-center font-medium">
