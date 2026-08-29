@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { UserPlus, Search, MoreVertical } from 'lucide-react'
+import { UserPlus, Search, MoreVertical, Eye } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -123,29 +123,37 @@ export default async function AlunosPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreVertical className="h-4 w-4" />
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={`/alunos/${student.id}`}>
+                          <Button variant="outline" size="sm" className="h-8 text-xs font-medium text-blue-700 border-blue-200 hover:bg-blue-50">
+                            <Eye className="mr-1 h-3.5 w-3.5" />
+                            Ver Ficha
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <Link href={`/alunos/${student.id}`}>
-                            <DropdownMenuItem className="cursor-pointer">
-                              Ver Ficha Completa
+                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Abrir menu</span>
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <Link href={`/alunos/${student.id}`}>
+                              <DropdownMenuItem className="cursor-pointer">
+                                Ver Ficha Completa
+                              </DropdownMenuItem>
+                            </Link>
+                            <Link href={`/alunos/${student.id}/editar`}>
+                              <DropdownMenuItem className="cursor-pointer">
+                                Editar
+                              </DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
+                              Desativar
                             </DropdownMenuItem>
-                          </Link>
-                          <Link href={`/alunos/${student.id}/editar`}>
-                            <DropdownMenuItem className="cursor-pointer">
-                              Editar
-                            </DropdownMenuItem>
-                          </Link>
-                          <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
-                            Desativar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </td>
                   </tr>
                 ))
