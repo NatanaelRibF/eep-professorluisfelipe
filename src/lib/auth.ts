@@ -29,12 +29,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         if (!isValid) return null
         
+        // Never put large data URIs into the auth session to prevent 494 HTTP header cookie limits
+        const safeAvatar = operator.avatarUrl && operator.avatarUrl.startsWith('http') && operator.avatarUrl.length < 500
+          ? operator.avatarUrl
+          : null;
+
         return {
           id: operator.id,
           name: operator.name,
           nickname: operator.nickname || null,
           email: operator.email,
-          image: operator.avatarUrl || null,
+          image: safeAvatar,
           role: operator.role.name,
           roleId: operator.roleId,
         }
@@ -47,7 +52,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id
         token.role = (user as any).role
         token.roleId = (user as any).roleId
-        token.picture = (user as any).image
+        
+        // Strict guard against large avatar payloads in JWT cookie
+        const img = (user as any).image;
+        token.picture = img && typeof img === 'string' && img.startsWith('http') && img.length < 500 ? img : null;
         token.nickname = (user as any).nickname || null
       }
       return token
