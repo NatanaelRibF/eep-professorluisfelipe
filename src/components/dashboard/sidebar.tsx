@@ -38,7 +38,7 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
 
   const navItems = [
     {
-      title: "Dashboard",
+      title: "Início",
       href: "/",
       icon: LayoutDashboard,
       show: true

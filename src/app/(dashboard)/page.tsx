@@ -42,33 +42,37 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center space-x-2">
-          <p className="text-muted-foreground">
-            Bem-vindo, {session.user.name || 'Usuário'}
+    <div className="space-y-6">
+      {/* Welcome Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900">Início</h1>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            Bem-vindo de volta, <span className="font-semibold text-slate-800">{session.user.name || 'Usuário'}</span>
           </p>
         </div>
       </div>
 
+      {/* KPI Stats Cards */}
       <StatsCards stats={stats} />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-full">
+      {/* Harmonious 2-Column Equal Grid for All 4 Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="w-full">
           <AttendanceChart data={attendanceData} />
         </div>
-        <div className="col-span-4">
+        <div className="w-full">
+          <AttendanceByClassChart data={attendanceByClassData} />
+        </div>
+        <div className="w-full">
           <RACChart data={racData} />
         </div>
-        <div className="col-span-3">
+        <div className="w-full">
           <OccurrenceChart data={occurrenceData} />
-        </div>
-        <div className="col-span-full">
-          <AttendanceByClassChart data={attendanceByClassData} />
         </div>
       </div>
 
+      {/* Recent Activity Tables */}
       <RecentActivity
         recentOccurrences={recentOccurrences as any}
         recentRACs={recentRacs as any}

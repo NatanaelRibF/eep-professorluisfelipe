@@ -19,13 +19,15 @@ export function Header({ operatorName, operatorRole, operatorAvatar, onMenuClick
   
   // Simple breadcrumb logic based on pathname
   const getPageName = () => {
-    if (pathname === "/") return "Dashboard";
+    if (pathname === "/") return "Início";
     const path = pathname.split("/")[1];
-    if (!path) return "Dashboard";
+    if (!path) return "Início";
     if (path === "perfil") return "Meu Perfil";
     if (path === "imobilizados") return "Imobilizados";
     if (path === "frequencia") return "Frequência";
     if (path === "ocorrencias") return "Ocorrências";
+    if (path === "relatorios") return "Relatórios";
+    if (path === "configuracoes") return "Configurações";
     return path.charAt(0).toUpperCase() + path.slice(1);
   };
 

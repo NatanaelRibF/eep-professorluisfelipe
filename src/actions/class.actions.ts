@@ -123,6 +123,99 @@ export async function getCurrentSchoolYear() {
   }
 }
 
+export async function createSchoolYear(data: {
+  year: number;
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+}) {
+  try {
+    const existing = await prisma.schoolYear.findUnique({
+      where: { year: data.year },
+    });
+
+    if (existing) {
+      return { success: false, error: `O ano letivo ${data.year} já está cadastrado.` };
+    }
+
+    if (data.isCurrent) {
+      await prisma.schoolYear.updateMany({
+        data: { isCurrent: false },
+      });
+    }
+
+    const schoolYear = await prisma.schoolYear.create({
+      data: {
+        year: Number(data.year),
+        startDate: data.startDate ? new Date(data.startDate) : new Date(`${data.year}-02-01`),
+        endDate: data.endDate ? new Date(data.endDate) : new Date(`${data.year}-12-15`),
+        isCurrent: !!data.isCurrent,
+      },
+    });
+
+    revalidatePath('/configuracoes');
+    return { success: true, schoolYear };
+  } catch (error: any) {
+    console.error('Error in createSchoolYear:', error);
+    return { success: false, error: error.message || 'Erro ao cadastrar ano letivo' };
+  }
+}
+
+export async function updateSchoolYear(
+  id: string,
+  data: {
+    year?: number;
+    startDate?: string;
+    endDate?: string;
+    isCurrent?: boolean;
+  }
+) {
+  try {
+    if (data.isCurrent) {
+      await prisma.schoolYear.updateMany({
+        where: { id: { not: id } },
+        data: { isCurrent: false },
+      });
+    }
+
+    const updateData: any = {};
+    if (data.year !== undefined) updateData.year = Number(data.year);
+    if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
+    if (data.endDate !== undefined) updateData.endDate = new Date(data.endDate);
+    if (data.isCurrent !== undefined) updateData.isCurrent = data.isCurrent;
+
+    const schoolYear = await prisma.schoolYear.update({
+      where: { id },
+      data: updateData,
+    });
+
+    revalidatePath('/configuracoes');
+    return { success: true, schoolYear };
+  } catch (error: any) {
+    console.error('Error in updateSchoolYear:', error);
+    return { success: false, error: error.message || 'Erro ao atualizar ano letivo' };
+  }
+}
+
+export async function setCurrentSchoolYear(id: string) {
+  try {
+    await prisma.schoolYear.updateMany({
+      data: { isCurrent: false },
+    });
+
+    const schoolYear = await prisma.schoolYear.update({
+      where: { id },
+      data: { isCurrent: true },
+    });
+
+    revalidatePath('/configuracoes');
+    return { success: true, schoolYear };
+  } catch (error: any) {
+    console.error('Error in setCurrentSchoolYear:', error);
+    return { success: false, error: error.message || 'Erro ao definir ano letivo atual' };
+  }
+}
+
 export async function assignTeacher(data: {
   subjectId: string;
   operatorId: string;
