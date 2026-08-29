@@ -10,7 +10,6 @@ export async function getStrategicManagementData() {
       totalOperators,
       criticalAbsenceStudents,
       examStats,
-      electivesStats,
       internshipStats,
       spaceStats,
     ] = await Promise.all([
@@ -32,15 +31,6 @@ export async function getStrategicManagementData() {
       prisma.examSubmission.groupBy({
         by: ['performanceTier'],
         _count: { performanceTier: true },
-      }),
-
-      // Eletivas Ocupação
-      prisma.electiveSubject.findMany({
-        where: { isActive: true },
-        include: {
-          operator: true,
-          _count: { select: { enrollments: true } },
-        },
       }),
 
       // Estágios
@@ -77,7 +67,6 @@ export async function getStrategicManagementData() {
       criticalStudentsCount: criticalAbsenceStudents.length,
       criticalStudentsList,
       examStats,
-      electivesStats,
       internshipStats,
       spaceStats,
     };

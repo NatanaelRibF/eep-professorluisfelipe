@@ -18,7 +18,6 @@ import {
   ChevronRight,
   LogOut,
   User,
-  Sparkles,
   CheckSquare,
   Briefcase,
   TrendingUp,
@@ -77,12 +76,6 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
       href: "/pdt",
       icon: GraduationCap,
       show: hasPermission(userRole, 'manage_pdt') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor'
-    },
-    {
-      title: "Eletivas & Feirão",
-      href: "/eletivas",
-      icon: Sparkles,
-      show: hasPermission(userRole, 'manage_electives') || userRole === 'Diretor' || userRole === 'Coordenador' || userRole === 'Professor'
     },
     {
       title: "Simulados SPAECE/ENEM",

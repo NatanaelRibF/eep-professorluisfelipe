@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp, Users, AlertTriangle, Award, Sparkles, Briefcase, Building2, Phone, ChevronRight, ShieldAlert, CheckCircle, ArrowRight } from "lucide-react";
+import { TrendingUp, Users, AlertTriangle, Award, Briefcase, Building2, Phone, ChevronRight, ShieldAlert, CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,13 +27,9 @@ export default function GestaoClient({ data }: GestaoClientProps) {
     criticalStudentsCount,
     criticalStudentsList,
     examStats,
-    electivesStats,
     internshipStats,
     spaceStats,
   } = data;
-
-  const totalElectivesCapacity = electivesStats.reduce((acc: number, e: any) => acc + (e.maxCapacity || 0), 0);
-  const totalElectivesEnrolled = electivesStats.reduce((acc: number, e: any) => acc + (e._count?.enrollments || 0), 0);
 
   const activeInternships = internshipStats.find((i: any) => i.status === "EM_ANDAMENTO")?._count?.status || 0;
   const completedInternships = internshipStats.find((i: any) => i.status === "CONCLUIDO")?._count?.status || 0;
@@ -45,16 +41,16 @@ export default function GestaoClient({ data }: GestaoClientProps) {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900 flex items-center gap-2">
             <TrendingUp className="h-7 w-7 text-blue-600" />
-            Painel Estratégico de Gestão Escolar
+            Painel Estratégico de Gestão Escolar (EEEP)
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm">
-            Monitoramento de metas da escola, busca ativa (abandono zero), proficiência SPAECE e indicadores SEDUC-CE.
+            Monitoramento de metas da escola, busca ativa (abandono zero), proficiência SPAECE e estágio técnico (SEDUC-CE).
           </p>
         </div>
       </div>
 
       {/* Strategic KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="border-red-200 bg-gradient-to-br from-red-50/70 to-white shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="text-xs font-bold text-red-800 uppercase flex items-center gap-1.5">
@@ -82,21 +78,6 @@ export default function GestaoClient({ data }: GestaoClientProps) {
           </CardHeader>
           <CardContent>
             <p className="text-xs text-slate-500">{totalClasses} Turmas ativas no ano letivo</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-amber-200 bg-gradient-to-br from-amber-50/70 to-white shadow-sm">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs font-bold text-amber-800 uppercase flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-amber-600" />
-              Ocupação em Eletivas
-            </CardDescription>
-            <CardTitle className="text-2xl font-bold text-slate-900">
-              {totalElectivesEnrolled} / {totalElectivesCapacity}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-slate-500">{electivesStats.length} Disciplinas no Feirão</p>
           </CardContent>
         </Card>
 
@@ -210,32 +191,6 @@ export default function GestaoClient({ data }: GestaoClientProps) {
           </div>
         </Card>
 
-        {/* Eletivas Hub */}
-        <Card className="border-slate-200 shadow-sm flex flex-col justify-between">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              Feirão de Eletivas
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Diversificação curricular e protagonismo juvenil.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-2 border-t text-xs text-slate-600">
-            <p>• Catálogo de ementas dos professores</p>
-            <p>• Matrícula online em tempo real</p>
-            <p>• Culminâncias semestrais</p>
-          </CardContent>
-          <div className="p-4 pt-0">
-            <Link href="/eletivas">
-              <Button variant="outline" size="sm" className="w-full text-xs font-bold text-amber-800 border-amber-200 hover:bg-amber-50">
-                Acessar Módulo Eletivas
-                <ChevronRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </Link>
-          </div>
-        </Card>
-
         {/* Simulados Hub */}
         <Card className="border-slate-200 shadow-sm flex flex-col justify-between">
           <CardHeader className="pb-2">
@@ -256,6 +211,32 @@ export default function GestaoClient({ data }: GestaoClientProps) {
             <Link href="/simulados">
               <Button variant="outline" size="sm" className="w-full text-xs font-bold text-emerald-800 border-emerald-200 hover:bg-emerald-50">
                 Acessar Módulo Simulados
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </Link>
+          </div>
+        </Card>
+
+        {/* Estagio Hub */}
+        <Card className="border-slate-200 shadow-sm flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-purple-600" />
+              Estágio Curricular EEEP
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Prática profissional e empresas conveniadas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-2 border-t text-xs text-slate-600">
+            <p>• Empresas parceiras concedentes</p>
+            <p>• Controle de 400h obrigatórias</p>
+            <p>• Folhas mensais de atividades</p>
+          </CardContent>
+          <div className="p-4 pt-0">
+            <Link href="/estagio">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold text-purple-800 border-purple-200 hover:bg-purple-50">
+                Acessar Módulo Estágio
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             </Link>
