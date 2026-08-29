@@ -4,18 +4,31 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
+const GESTOR_ROLES = ['Diretor', 'Coordenador', 'Secretário'];
+
 export async function getPDTClasses(schoolYearId?: string) {
   try {
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    const userId = session?.user?.id;
+    const isGestor = GESTOR_ROLES.includes(userRole);
+
     let where: any = {};
     if (schoolYearId && schoolYearId !== 'all') {
-      where = { schoolYearId };
+      where.schoolYearId = schoolYearId;
     } else if (!schoolYearId) {
       const currentYear = await prisma.schoolYear.findFirst({
         where: { isCurrent: true },
       });
       if (currentYear) {
-        where = { schoolYearId: currentYear.id };
+        where.schoolYearId = currentYear.id;
       }
+    }
+
+    // If teacher (and not Núcleo Gestor), only allow viewing their own assigned PDT class(es)
+    if (!isGestor) {
+      if (!userId) return [];
+      where.pdtId = userId;
     }
 
     return await prisma.classGroup.findMany({
@@ -37,7 +50,15 @@ export async function getPDTClasses(schoolYearId?: string) {
 export async function assignPDTTeacher(classGroupId: string, operatorId: string | null) {
   try {
     const session = await auth();
-    if (!session?.user) throw new Error('Não autorizado');
+    const userRole = (session?.user as any)?.role || '';
+    const isGestor = GESTOR_ROLES.includes(userRole);
+
+    if (!isGestor) {
+      return {
+        success: false,
+        error: 'Apenas o Núcleo Gestor (Diretor, Coordenador e Secretário) pode definir os professores PDT das turmas.',
+      };
+    }
 
     const updated = await prisma.classGroup.update({
       where: { id: classGroupId },
@@ -55,13 +76,40 @@ export async function assignPDTTeacher(classGroupId: string, operatorId: string 
 
 export async function getStudentDossier(studentId: string) {
   try {
-    const [student, dossier, attendances, racs, occurrences] = await Promise.all([
-      prisma.student.findUnique({
-        where: { id: studentId },
-        include: {
-          enrollments: { include: { classGroup: { include: { pdtTeacher: true } } } },
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    const userId = session?.user?.id;
+    const isGestor = GESTOR_ROLES.includes(userRole);
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: {
+        enrollments: {
+          where: { status: 'ATIVO' },
+          include: {
+            classGroup: {
+              include: { pdtTeacher: true },
+            },
+          },
         },
-      }),
+      },
+    });
+
+    if (!student) return null;
+
+    // Check permissions for teacher
+    if (!isGestor) {
+      const isPDTOfStudent = student.enrollments.some(
+        (enr) => enr.classGroup.pdtId === userId
+      );
+      if (!isPDTOfStudent) {
+        return {
+          error: 'Acesso restrito: Você só pode acessar o dossiê de estudantes da sua própria turma de PDT.',
+        };
+      }
+    }
+
+    const [dossier, attendances, racs, occurrences] = await Promise.all([
       prisma.pDTStudentDossier.findUnique({
         where: { studentId },
       }),
@@ -123,9 +171,31 @@ export async function saveStudentDossier(studentId: string, data: {
 
 export async function getPDTAttendances(params?: { studentId?: string; operatorId?: string }) {
   try {
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    const userId = session?.user?.id;
+    const isGestor = GESTOR_ROLES.includes(userRole);
+
     const where: any = {};
     if (params?.studentId) where.studentId = params.studentId;
     if (params?.operatorId) where.operatorId = params.operatorId;
+
+    if (!isGestor && userId) {
+      // Filter attendances for students belonging to this PDT's assigned classes or created by them
+      where.OR = [
+        { operatorId: userId },
+        {
+          student: {
+            enrollments: {
+              some: {
+                status: 'ATIVO',
+                classGroup: { pdtId: userId },
+              },
+            },
+          },
+        },
+      ];
+    }
 
     return await prisma.pDTAttendanceRecord.findMany({
       where,
@@ -183,8 +253,17 @@ export async function createPDTAttendance(data: {
 
 export async function getPDTCouncils(classGroupId?: string) {
   try {
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    const userId = session?.user?.id;
+    const isGestor = GESTOR_ROLES.includes(userRole);
+
     const where: any = {};
     if (classGroupId) where.classGroupId = classGroupId;
+
+    if (!isGestor && userId) {
+      where.classGroup = { pdtId: userId };
+    }
 
     return await prisma.pDTClassCouncil.findMany({
       where,
