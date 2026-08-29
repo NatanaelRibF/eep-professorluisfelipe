@@ -18,7 +18,11 @@ import {
   XCircle,
   Loader2,
   Check,
-  MapPin
+  MapPin,
+  LayoutGrid,
+  ListFilter,
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +58,8 @@ interface AgendaClientProps {
 export default function AgendaClient({ initialData, user }: AgendaClientProps) {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(initialData.date);
+  const [selectedSlotNumber, setSelectedSlotNumber] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<"MOBILE_CARDS" | "TABLE">("MOBILE_CARDS");
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -198,10 +204,12 @@ export default function AgendaClient({ initialData, user }: AgendaClientProps) {
     return dateString;
   };
 
+  const currentSlotObj = initialData.slots.find(s => s.number === selectedSlotNumber) || initialData.slots[0];
+
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/imobilizados">
             <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -209,37 +217,61 @@ export default function AgendaClient({ initialData, user }: AgendaClientProps) {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-900 flex items-center gap-2">
-              <CalendarDays className="h-7 w-7 text-blue-600" />
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-blue-900 flex items-center gap-2">
+              <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
               Grade de Horários por Aula
             </h1>
             <p className="text-muted-foreground text-xs sm:text-sm">
-              Visão completa de disponibilidade de projetores, som e microfones por aula.
+              Disponibilidade, agendamento e liberação de equipamentos por aula.
             </p>
           </div>
         </div>
 
-        <Link href="/imobilizados">
-          <Button variant="outline" size="sm" className="text-xs">
-            Voltar para Catálogo
-          </Button>
-        </Link>
+        {/* View Toggle (Mobile / Full Table) */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs font-semibold">
+            <button
+              onClick={() => setViewMode("MOBILE_CARDS")}
+              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
+                viewMode === "MOBILE_CARDS" ? "bg-white text-blue-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <ListFilter className="w-3.5 h-3.5" />
+              Por Aula
+            </button>
+            <button
+              onClick={() => setViewMode("TABLE")}
+              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
+                viewMode === "TABLE" ? "bg-white text-blue-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              Grade Completa
+            </button>
+          </div>
+
+          <Link href="/imobilizados">
+            <Button variant="outline" size="sm" className="text-xs h-8">
+              Catálogo
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Date Navigation Bar */}
       <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => handleShiftDate(-1)}>
+        <CardContent className="p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="icon" onClick={() => handleShiftDate(-1)} className="h-9 w-9">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Input
               type="date"
               value={selectedDate}
               onChange={(e) => handleDateChange(e.target.value)}
-              className="w-44 font-semibold text-slate-800"
+              className="w-36 sm:w-44 font-semibold text-slate-800 text-xs sm:text-sm h-9"
             />
-            <Button variant="outline" size="icon" onClick={() => handleShiftDate(1)}>
+            <Button variant="outline" size="icon" onClick={() => handleShiftDate(1)} className="h-9 w-9">
               <ChevronRight className="h-4 w-4" />
             </Button>
 
@@ -247,115 +279,259 @@ export default function AgendaClient({ initialData, user }: AgendaClientProps) {
               variant="secondary"
               size="sm"
               onClick={() => handleDateChange(new Date().toISOString().split("T")[0])}
-              className="text-xs ml-2"
+              className="text-xs ml-auto sm:ml-2 h-9"
             >
               Hoje
             </Button>
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-4 text-xs font-medium text-slate-600">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block"></span>
-              <span>Disponível</span>
+          <div className="flex items-center gap-3 text-xs font-medium text-slate-600">
+            <div className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>
+              <span>Livre</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-blue-600 inline-block"></span>
+            <div className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded bg-blue-600 inline-block"></span>
               <span>Reservado</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-amber-500 inline-block"></span>
+            <div className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span>
               <span>Em Uso</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Schedule Matrix Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
-            <thead>
-              <tr className="bg-slate-900 text-white text-xs">
-                <th className="p-3.5 font-bold uppercase w-60 sticky left-0 bg-slate-900 z-10 border-r border-slate-800">
-                  Equipamento / Patrimônio
-                </th>
-                {initialData.slots.map((slot) => (
-                  <th key={slot.number} className="p-2.5 text-center border-l border-slate-800 font-medium">
-                    <div className="font-bold text-white text-xs">{slot.label}</div>
-                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">{slot.time}</div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {initialData.equipments.map((equipment) => (
-                <tr key={equipment.id} className="hover:bg-slate-50/70 transition-colors">
-                  {/* Equipment Column (Sticky Left) */}
-                  <td className="p-3.5 sticky left-0 bg-white z-10 border-r border-slate-200 shadow-sm font-medium">
-                    <div className="font-bold text-slate-900 text-sm">{equipment.name}</div>
-                    <div className="text-xs font-mono text-blue-700 font-semibold">{equipment.code}</div>
-                    <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3" />
-                      <span className="truncate">{equipment.location}</span>
+      {/* VIEW MODE 1: MOBILE TOUCH CARDS BY CLASS SLOT (Ultra Fast on Phones!) */}
+      {viewMode === "MOBILE_CARDS" && (
+        <div className="space-y-4">
+          {/* Class Slot Horizontal Selector Pills (Swipeable on mobile) */}
+          <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
+            <div className="flex gap-2 min-w-max">
+              {initialData.slots.map((slot) => {
+                const isSelected = slot.number === selectedSlotNumber;
+                return (
+                  <button
+                    key={slot.number}
+                    onClick={() => setSelectedSlotNumber(slot.number)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center ${
+                      isSelected
+                        ? "bg-blue-800 text-white shadow-md shadow-blue-800/30 ring-2 ring-blue-800"
+                        : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>{slot.label}</span>
+                    <span className={`text-[10px] mt-0.5 font-normal ${isSelected ? "text-blue-200" : "text-slate-400"}`}>
+                      {slot.time}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Slot Header Banner */}
+          <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-blue-900 uppercase">
+                {currentSlotObj.label} ({currentSlotObj.time}) — {currentSlotObj.shift}
+              </p>
+              <p className="text-[11px] text-blue-700">
+                Data: {formatDateDisplay(selectedDate)}
+              </p>
+            </div>
+            <Badge className="bg-blue-800 text-white text-xs">
+              {initialData.equipments.length} Equipamentos
+            </Badge>
+          </div>
+
+          {/* Equipment Cards List for the Selected Slot */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {initialData.equipments.map((equipment) => {
+              const booking = getBookingForSlot(equipment.id, selectedSlotNumber);
+              const isReserved = !!booking;
+              const isEmUso = booking?.status === "EM_USO";
+              const isMaintenance = equipment.status === "MANUTENCAO";
+
+              return (
+                <Card 
+                  key={equipment.id} 
+                  className={`border shadow-sm transition-all ${
+                    isEmUso ? "border-amber-300 bg-amber-50/20" :
+                    isReserved ? "border-blue-300 bg-blue-50/20" :
+                    isMaintenance ? "border-red-200 bg-red-50/20 opacity-70" :
+                    "border-emerald-200 bg-white"
+                  }`}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-sm leading-tight">{equipment.name}</h4>
+                        <p className="text-xs font-mono text-blue-700 font-semibold">{equipment.code}</p>
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                          {equipment.location}
+                        </p>
+                      </div>
+
+                      <div>
+                        {isMaintenance ? (
+                          <Badge className="bg-red-100 text-red-800 border-red-200 text-xs">Manutenção</Badge>
+                        ) : isEmUso ? (
+                          <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-bold">Em Uso</Badge>
+                        ) : isReserved ? (
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs font-bold">Reservado</Badge>
+                        ) : (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs font-bold">Disponível</Badge>
+                        )}
+                      </div>
                     </div>
-                  </td>
 
-                  {/* Slot Columns (1ª to 9ª Aula) */}
-                  {initialData.slots.map((slot) => {
-                    const booking = getBookingForSlot(equipment.id, slot.number);
+                    {/* Booking Details if occupied */}
+                    {booking && (
+                      <div className="p-2.5 rounded-lg bg-white/80 border border-slate-200 text-xs space-y-1">
+                        <p className="font-semibold text-slate-800 flex items-center gap-1">
+                          <User className="w-3.5 h-3.5 text-blue-600" />
+                          {booking.operator?.name || "Professor"}
+                        </p>
+                        {booking.classGroupName && (
+                          <p className="text-slate-600">Turma: {booking.classGroupName}</p>
+                        )}
+                        {booking.purpose && (
+                          <p className="text-slate-500 italic truncate">Finalidade: {booking.purpose}</p>
+                        )}
+                      </div>
+                    )}
 
-                    if (booking) {
-                      const isEmUso = booking.status === "EM_USO";
+                    {/* Action Buttons */}
+                    <div className="pt-1">
+                      {isMaintenance ? (
+                        <p className="text-xs text-red-600 italic">Equipamento indisponível no momento.</p>
+                      ) : isEmUso ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleOpenDetailModal(booking)}
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold h-10 shadow-sm"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-1.5" />
+                          Registrar Devolução / Liberar
+                        </Button>
+                      ) : isReserved ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleOpenDetailModal(booking)}
+                          className="w-full bg-blue-800 hover:bg-blue-700 text-white text-xs font-bold h-10 shadow-sm"
+                        >
+                          <Play className="w-4 h-4 mr-1.5" />
+                          Gerenciar / Retirar Equipamento
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => handleOpenBookingModal(equipment, currentSlotObj)}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 shadow-sm"
+                        >
+                          <Plus className="w-4 h-4 mr-1.5" />
+                          Reservar para {currentSlotObj.label}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW MODE 2: FULL SCHEDULE MATRIX TABLE (With Smooth Touch Scroll) */}
+      {viewMode === "TABLE" && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
+              <thead>
+                <tr className="bg-slate-900 text-white text-xs">
+                  <th className="p-3.5 font-bold uppercase w-60 sticky left-0 bg-slate-900 z-10 border-r border-slate-800">
+                    Equipamento / Patrimônio
+                  </th>
+                  {initialData.slots.map((slot) => (
+                    <th key={slot.number} className="p-2.5 text-center border-l border-slate-800 font-medium">
+                      <div className="font-bold text-white text-xs">{slot.label}</div>
+                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">{slot.time}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {initialData.equipments.map((equipment) => (
+                  <tr key={equipment.id} className="hover:bg-slate-50/70 transition-colors">
+                    {/* Equipment Column (Sticky Left) */}
+                    <td className="p-3.5 sticky left-0 bg-white z-10 border-r border-slate-200 shadow-sm font-medium">
+                      <div className="font-bold text-slate-900 text-sm">{equipment.name}</div>
+                      <div className="text-xs font-mono text-blue-700 font-semibold">{equipment.code}</div>
+                      <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{equipment.location}</span>
+                      </div>
+                    </td>
+
+                    {/* Slot Columns (1ª to 9ª Aula) */}
+                    {initialData.slots.map((slot) => {
+                      const booking = getBookingForSlot(equipment.id, slot.number);
+
+                      if (booking) {
+                        const isEmUso = booking.status === "EM_USO";
+                        return (
+                          <td key={slot.number} className="p-1.5 border-l border-slate-200 align-middle">
+                            <button
+                              onClick={() => handleOpenDetailModal(booking)}
+                              className={`w-full h-16 p-2 rounded-lg text-left text-white shadow-sm transition-all hover:opacity-90 flex flex-col justify-between ${
+                                isEmUso
+                                  ? "bg-amber-600 border-amber-700"
+                                  : "bg-blue-800 border-blue-900"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span className="font-bold truncate text-[11px]">
+                                  {booking.operator?.name?.split(" ")[0] || "Prof."}
+                                </span>
+                                <Badge className={`text-[9px] px-1 py-0 ${isEmUso ? "bg-amber-800" : "bg-blue-950"}`}>
+                                  {isEmUso ? "Em Uso" : "Reservado"}
+                                </Badge>
+                              </div>
+                              <div className="text-[10px] text-blue-100 truncate">
+                                {booking.classGroupName || "Turma não informada"}
+                              </div>
+                            </button>
+                          </td>
+                        );
+                      }
+
+                      // Available Slot
                       return (
                         <td key={slot.number} className="p-1.5 border-l border-slate-200 align-middle">
                           <button
-                            onClick={() => handleOpenDetailModal(booking)}
-                            className={`w-full h-16 p-2 rounded-lg text-left text-white shadow-sm transition-all hover:opacity-90 flex flex-col justify-between ${
-                              isEmUso
-                                ? "bg-amber-600 border-amber-700"
-                                : "bg-blue-800 border-blue-900"
-                            }`}
+                            onClick={() => handleOpenBookingModal(equipment, slot)}
+                            disabled={equipment.status === "MANUTENCAO"}
+                            className="w-full h-16 rounded-lg border border-dashed border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-800 transition-colors flex flex-col items-center justify-center gap-1 group disabled:opacity-40 disabled:cursor-not-allowed"
+                            title={`Reservar para ${slot.label}`}
                           >
-                            <div className="flex items-center justify-between w-full">
-                              <span className="font-bold truncate text-[11px]">
-                                {booking.operator?.name?.split(" ")[0] || "Prof."}
-                              </span>
-                              <Badge className={`text-[9px] px-1 py-0 ${isEmUso ? "bg-amber-800" : "bg-blue-950"}`}>
-                                {isEmUso ? "Em Uso" : "Reservado"}
-                              </Badge>
-                            </div>
-                            <div className="text-[10px] text-blue-100 truncate">
-                              {booking.classGroupName || "Turma não informada"}
-                            </div>
+                            <Plus className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                            <span className="text-[10px] font-semibold text-emerald-700">Livre</span>
                           </button>
                         </td>
                       );
-                    }
-
-                    // Available Slot
-                    return (
-                      <td key={slot.number} className="p-1.5 border-l border-slate-200 align-middle">
-                        <button
-                          onClick={() => handleOpenBookingModal(equipment, slot)}
-                          disabled={equipment.status === "MANUTENCAO"}
-                          className="w-full h-16 rounded-lg border border-dashed border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-800 transition-colors flex flex-col items-center justify-center gap-1 group disabled:opacity-40 disabled:cursor-not-allowed"
-                          title={`Reservar para ${slot.label}`}
-                        >
-                          <Plus className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                          <span className="text-[10px] font-semibold text-emerald-700">Livre</span>
-                        </button>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Modal: Agendamento Rápido Direto na Célula */}
+      {/* Modal: Agendamento Rápido Direto */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
         <DialogContent className="sm:max-w-md">
           <form onSubmit={handleConfirmBooking}>
@@ -372,7 +548,7 @@ export default function AgendaClient({ initialData, user }: AgendaClientProps) {
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="agendaClass">Turma / Local de Uso</Label>
+                <Label htmlFor="agendaClass">Turma / Local de Uso *</Label>
                 <Input
                   id="agendaClass"
                   placeholder="Ex: 2º Ano B - Manhã, Auditório, etc."
@@ -393,7 +569,7 @@ export default function AgendaClient({ initialData, user }: AgendaClientProps) {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
               <Button variant="outline" type="button" onClick={() => setIsBookingOpen(false)}>
                 Cancelar
               </Button>
