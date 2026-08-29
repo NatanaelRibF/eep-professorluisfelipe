@@ -49,22 +49,43 @@ async function main() {
 
   await prisma.operatorRole.upsert({
     where: { name: 'Secretário' },
-    update: {},
+    update: {
+      permissions: [
+        'manage_students',
+        'manage_rac',
+        'manage_occurrences',
+        'manage_classes',
+        'view_reports',
+        'manage_equipment',
+        'view_equipment',
+      ],
+    },
     create: {
       name: 'Secretário',
       description: 'Secretaria Escolar',
       permissions: [
         'manage_students',
+        'manage_rac',
         'manage_occurrences',
         'manage_classes',
         'view_reports',
+        'manage_equipment',
+        'view_equipment',
       ],
     },
   })
 
   await prisma.operatorRole.upsert({
     where: { name: 'Professor' },
-    update: {},
+    update: {
+      permissions: [
+        'manage_attendance',
+        'manage_rac',
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+      ],
+    },
     create: {
       name: 'Professor',
       description: 'Corpo Docente',
@@ -72,6 +93,28 @@ async function main() {
         'manage_attendance',
         'manage_rac',
         'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+      ],
+    },
+  })
+
+  await prisma.operatorRole.upsert({
+    where: { name: 'Outros' },
+    update: {
+      permissions: [
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+      ],
+    },
+    create: {
+      name: 'Outros',
+      description: 'Funcionários Gerais / Apoio / Inspetores',
+      permissions: [
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
       ],
     },
   })

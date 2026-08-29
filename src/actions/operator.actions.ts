@@ -177,16 +177,64 @@ export async function toggleOperatorStatus(id: string) {
 
 export async function getOperatorRoles() {
   try {
-    // Ensure 'Outros' role exists in database
-    await prisma.operatorRole.upsert({
-      where: { name: 'Outros' },
-      update: {},
-      create: {
-        name: 'Outros',
-        description: 'Funcionários Gerais / Apoio / Inspetores',
-        permissions: ['manage_equipment', 'view_equipment'],
-      },
-    });
+    // Ensure all roles and their updated permissions exist in the database
+    await Promise.all([
+      prisma.operatorRole.upsert({
+        where: { name: 'Diretor' },
+        update: {
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment'],
+        },
+        create: {
+          name: 'Diretor',
+          description: 'Direção Geral da Escola',
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_operators', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment'],
+        },
+      }),
+      prisma.operatorRole.upsert({
+        where: { name: 'Coordenador' },
+        update: {
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment'],
+        },
+        create: {
+          name: 'Coordenador',
+          description: 'Coordenação Pedagógica',
+          permissions: ['manage_students', 'manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_classes', 'manage_subjects', 'manage_settings', 'view_reports', 'manage_equipment', 'view_equipment'],
+        },
+      }),
+      prisma.operatorRole.upsert({
+        where: { name: 'Secretário' },
+        update: {
+          permissions: ['manage_students', 'manage_rac', 'manage_occurrences', 'manage_classes', 'view_reports', 'manage_equipment', 'view_equipment'],
+        },
+        create: {
+          name: 'Secretário',
+          description: 'Secretaria Escolar',
+          permissions: ['manage_students', 'manage_rac', 'manage_occurrences', 'manage_classes', 'view_reports', 'manage_equipment', 'view_equipment'],
+        },
+      }),
+      prisma.operatorRole.upsert({
+        where: { name: 'Professor' },
+        update: {
+          permissions: ['manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_equipment', 'view_equipment'],
+        },
+        create: {
+          name: 'Professor',
+          description: 'Corpo Docente',
+          permissions: ['manage_attendance', 'manage_rac', 'manage_occurrences', 'manage_equipment', 'view_equipment'],
+        },
+      }),
+      prisma.operatorRole.upsert({
+        where: { name: 'Outros' },
+        update: {
+          permissions: ['manage_occurrences', 'manage_equipment', 'view_equipment'],
+        },
+        create: {
+          name: 'Outros',
+          description: 'Funcionários Gerais / Apoio / Inspetores',
+          permissions: ['manage_occurrences', 'manage_equipment', 'view_equipment'],
+        },
+      }),
+    ]);
 
     return await prisma.operatorRole.findMany({
       orderBy: { name: 'asc' },
