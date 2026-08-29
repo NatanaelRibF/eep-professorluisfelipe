@@ -5,14 +5,27 @@ import { revalidatePath } from 'next/cache';
 
 export async function getClassGroups(schoolYearId?: string) {
   try {
-    const where = schoolYearId ? { schoolYearId } : {};
+    let where: any = {};
+    if (schoolYearId && schoolYearId !== 'all') {
+      where = { schoolYearId };
+    } else if (!schoolYearId) {
+      // By default, show classes from the configured current school year
+      const currentYear = await prisma.schoolYear.findFirst({
+        where: { isCurrent: true },
+      });
+      if (currentYear) {
+        where = { schoolYearId: currentYear.id };
+      }
+    }
+
     return await prisma.classGroup.findMany({
       where,
       include: {
         grade: true,
         schoolYear: true,
+        pdtTeacher: true,
         _count: {
-          select: { enrollments: true },
+          select: { enrollments: true, subjectTeachers: true },
         },
       },
       orderBy: { name: 'asc' },

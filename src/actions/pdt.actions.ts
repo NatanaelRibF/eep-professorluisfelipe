@@ -4,9 +4,22 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-export async function getPDTClasses() {
+export async function getPDTClasses(schoolYearId?: string) {
   try {
+    let where: any = {};
+    if (schoolYearId && schoolYearId !== 'all') {
+      where = { schoolYearId };
+    } else if (!schoolYearId) {
+      const currentYear = await prisma.schoolYear.findFirst({
+        where: { isCurrent: true },
+      });
+      if (currentYear) {
+        where = { schoolYearId: currentYear.id };
+      }
+    }
+
     return await prisma.classGroup.findMany({
+      where,
       include: {
         grade: true,
         schoolYear: true,
