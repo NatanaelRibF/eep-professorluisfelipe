@@ -49,6 +49,10 @@ model Operator {
   // Estagios
   internshipsGuided StudentInternship[]
 
+  // Liberacao de Alunos e Busca Ativa
+  exitPasses        StudentExitPass[]
+  buscaAtivaActions BuscaAtivaAction[]
+
   @@map("operators")
 }
 
@@ -72,6 +76,8 @@ model Student {
   pdtDossier         PDTStudentDossier?
   pdtAttendances     PDTAttendanceRecord[]
   internships        StudentInternship[]
+  exitPasses         StudentExitPass[]
+  buscaAtivaActions  BuscaAtivaAction[]
 
   @@map("students")
 }
@@ -442,4 +448,71 @@ model InternshipLog {
   createdAt    DateTime          @default(now()) @map("created_at")
 
   @@map("internship_logs")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: LIBERAÇÃO DE ALUNOS (Passe de Saída Antecipada / Portaria)
+// -----------------------------------------------------------------------------
+
+model StudentExitPass {
+  id              String    @id @default(cuid())
+  studentId       String    @map("student_id")
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  operatorId      String    @map("operator_id") // Operador que registrou/autorizou
+  operator        Operator  @relation(fields: [operatorId], references: [id])
+  type            String    @default("SAIDA_ANTECIPADA") // SAIDA_ANTECIPADA, ENTRADA_TARDIA, LIBERACAO_TURMA
+  date            DateTime  @default(now()) @db.Date
+  time            String    // Horário (ex: "10:30")
+  reason          String    // Motivo: Consulta médica, Assunto familiar, Mal-estar, etc.
+  authorizedBy    String    @map("authorized_by") // Responsável ou coordenação que autorizou
+  accompaniedBy   String?   @map("accompanied_by") // Quem acompanhou na saída
+  guardianContact String?   @map("guardian_contact") // Telefone de contato
+  status          String    @default("LIBERADO") // LIBERADO, CANCELADO
+  observation     String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("student_exit_passes")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: CALENDÁRIO LETIVO / EVENTOS ESCOLARES (SEDUC Ceará)
+// -----------------------------------------------------------------------------
+
+model SchoolEvent {
+  id             String    @id @default(cuid())
+  schoolYearId   String?   @map("school_year_id")
+  title          String
+  description    String?
+  type           String    @default("EVENTO") // FERIADO, RECESSO, LETIVO, SABADO_LETIVO, CONSELHO, PROVA, EVENTO, BIMESTRE
+  startDate      DateTime  @map("start_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  isNonSchoolDay Boolean   @default(false) @map("is_non_school_day") // Dia não letivo
+  bimester       Int?      // 1, 2, 3, 4
+  color          String?   @default("blue") // blue, red, green, amber, purple
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("school_events")
+}
+
+// -----------------------------------------------------------------------------
+// MÓDULO: BUSCA ATIVA ESCOLAR (Acompanhamento e Intervenção de Infrequência)
+// -----------------------------------------------------------------------------
+
+model BuscaAtivaAction {
+  id              String    @id @default(cuid())
+  studentId       String    @map("student_id")
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  operatorId      String    @map("operator_id")
+  operator        Operator  @relation(fields: [operatorId], references: [id])
+  date            DateTime  @default(now())
+  contactType     String    @default("WHATSAPP") // LIGACAO, WHATSAPP, VISITA_DOMICILIAR, REUNIAO_PRESENCIAL, CONSELHO_TUTELAR
+  contactPerson   String    @map("contact_person") // Nome do responsável contatado
+  phoneUsed       String?   @map("phone_used")
+  summary         String    // Resumo da conversa / visita
+  reasonForAbsence String?  @map("reason_for_absence") // Motivo das faltas
+  returnDate      DateTime? @map("return_date") @db.Date // Previsão de retorno
+  status          String    @default("EM_ANDAMENTO") // EM_ANDAMENTO, RETORNOU, VISITA_NECESSARIA, CONSELHO_TUTELAR, TRANSFERIDO
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("busca_ativa_actions")
 }

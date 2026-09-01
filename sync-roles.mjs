@@ -20,6 +20,9 @@ async function syncRoles() {
     'manage_pdt',
     'manage_internships',
     'view_management',
+    'manage_passes',
+    'manage_busca_ativa',
+    'manage_calendar',
   ];
 
   await prisma.operatorRole.upsert({
@@ -40,7 +43,65 @@ async function syncRoles() {
     create: { name: 'Secretário', permissions: gestorPermissions, description: 'Secretaria Escolar' },
   });
 
-  console.log('✅ Roles updated with manage_operators in PostgreSQL!');
+  await prisma.operatorRole.upsert({
+    where: { name: 'Professor' },
+    update: {
+      permissions: [
+        'manage_attendance',
+        'manage_rac',
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+        'manage_pdt',
+        'manage_internships',
+        'manage_busca_ativa',
+        'manage_passes',
+        'manage_calendar',
+      ],
+    },
+    create: {
+      name: 'Professor',
+      permissions: [
+        'manage_attendance',
+        'manage_rac',
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+        'manage_pdt',
+        'manage_internships',
+        'manage_busca_ativa',
+        'manage_passes',
+        'manage_calendar',
+      ],
+      description: 'Corpo Docente',
+    },
+  });
+
+  await prisma.operatorRole.upsert({
+    where: { name: 'Outros' },
+    update: {
+      permissions: [
+        'manage_attendance',
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+        'manage_passes',
+      ],
+    },
+    create: {
+      name: 'Outros',
+      permissions: [
+        'manage_attendance',
+        'manage_occurrences',
+        'manage_equipment',
+        'view_equipment',
+        'manage_passes',
+      ],
+      description: 'Funcionários de Apoio / Inspetores',
+    },
+  });
+
+  console.log('✅ Roles updated in PostgreSQL!');
 }
 
 syncRoles()

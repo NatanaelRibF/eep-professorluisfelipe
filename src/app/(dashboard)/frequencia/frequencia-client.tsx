@@ -20,23 +20,36 @@ export default function FrequenciaClient({
   subjects: any[];
   mySubjectIds?: string[];
 }) {
+  const generalSubject = subjects.find(s => s.name === 'Frequência Geral Diária' || s.abbreviation === 'GERAL') || subjects[0];
+  const [freqMode, setFreqMode] = useState<'DIA' | 'AULA'>('DIA');
   const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState(mySubjectIds[0] || "");
+  const [selectedSubject, setSelectedSubject] = useState(generalSubject?.id || "");
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [students, setStudents] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<Record<string, { status: string, observation: string }>>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const handleModeChange = (mode: 'DIA' | 'AULA') => {
+    setFreqMode(mode);
+    if (mode === 'DIA') {
+      if (generalSubject) setSelectedSubject(generalSubject.id);
+    } else {
+      const firstRegular = subjects.find(s => s.id !== generalSubject?.id);
+      if (firstRegular) setSelectedSubject(mySubjectIds[0] || firstRegular.id);
+    }
+  };
+
   const loadClass = async () => {
-    if (!selectedClass || !selectedSubject || !date) {
-      toast.error("Preencha turma, disciplina e data para carregar.");
+    const targetSubject = freqMode === 'DIA' ? (generalSubject?.id || selectedSubject) : selectedSubject;
+    if (!selectedClass || !targetSubject || !date) {
+      toast.error(freqMode === 'DIA' ? "Preencha a turma e a data para carregar." : "Preencha turma, disciplina e data para carregar.");
       return;
     }
     setLoading(true);
     try {
       const result = await getStudents({ classGroupId: selectedClass, pageSize: 100 });
-      const previousAttendance = await getAttendanceByClassAndSubject(selectedClass, selectedSubject, date);
+      const previousAttendance = await getAttendanceByClassAndSubject(selectedClass, targetSubject, date);
       
       const attMap: Record<string, any> = {};
       previousAttendance.forEach((a: any) => {
@@ -46,7 +59,7 @@ export default function FrequenciaClient({
       result.students.forEach(st => {
         const enrollment = st.enrollments?.[0];
         if (enrollment && !attMap[enrollment.id]) {
-          attMap[enrollment.id] = { status: "PRESENTE", observation: "" }; // Default to PRESENTE for teacher speed
+          attMap[enrollment.id] = { status: "PRESENTE", observation: "" }; // Default to PRESENTE for speed
         }
       });
       
@@ -143,6 +156,34 @@ export default function FrequenciaClient({
 
   return (
     <div className="space-y-4">
+      {/* Mode Switcher Tabs */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100/90 rounded-xl w-fit border border-slate-200">
+        <button
+          type="button"
+          onClick={() => handleModeChange('DIA')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+            freqMode === 'DIA'
+              ? 'bg-blue-800 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+          }`}
+        >
+          <span>☀️</span>
+          <span>Frequência por Dia (Geral do Turno)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => handleModeChange('AULA')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+            freqMode === 'AULA'
+              ? 'bg-blue-800 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+          }`}
+        >
+          <span>📖</span>
+          <span>Frequência por Aula (Por Disciplina)</span>
+        </button>
+      </div>
+
       {/* Selector Card */}
       <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -159,26 +200,38 @@ export default function FrequenciaClient({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Disciplina *</label>
-            <select 
-              className="w-full flex h-11 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
-              value={selectedSubject} 
-              onChange={e => setSelectedSubject(e.target.value)}
-            >
-              <option value="">Selecione a disciplina...</option>
-              {subjects.map(s => {
-                const isMine = mySubjectIds.includes(s.id);
-                return (
-                  <option key={s.id} value={s.id}>
-                    {isMine ? `⭐ ${s.name} (Minha Disciplina)` : s.name}
-                  </option>
-                );
-              })}
-            </select>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              {freqMode === 'DIA' ? 'Modalidade' : 'Disciplina *'}
+            </label>
+            {freqMode === 'DIA' ? (
+              <div className="flex h-11 items-center px-3 rounded-lg border border-blue-200 bg-blue-50/70 text-blue-900 text-xs sm:text-sm font-bold">
+                ☀️ Frequência Geral do Dia
+              </div>
+            ) : (
+              <select 
+                className="w-full flex h-11 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+                value={selectedSubject} 
+                onChange={e => setSelectedSubject(e.target.value)}
+              >
+                <option value="">Selecione a disciplina...</option>
+                {subjects
+                  .filter(s => s.name !== 'Frequência Geral Diária')
+                  .map(s => {
+                    const isMine = mySubjectIds.includes(s.id);
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {isMine ? `⭐ ${s.name} (Minha Disciplina)` : s.name}
+                      </option>
+                    );
+                  })}
+              </select>
+            )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Data da Aula *</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              {freqMode === 'DIA' ? 'Data do Dia Letivo *' : 'Data da Aula *'}
+            </label>
             <Input 
               type="date" 
               value={date} 

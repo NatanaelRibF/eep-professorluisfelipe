@@ -20,7 +20,10 @@ import {
   User,
   Briefcase,
   TrendingUp,
-  BookOpen
+  BookOpen,
+  UserCheck,
+  UserSearch,
+  CalendarDays
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -59,6 +62,18 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
       show: true
     },
     {
+      title: "Busca Ativa",
+      href: "/busca-ativa",
+      icon: UserSearch,
+      show: true
+    },
+    {
+      title: "Liberação de Alunos",
+      href: "/liberacao",
+      icon: UserCheck,
+      show: true
+    },
+    {
       title: "RAC",
       href: "/rac",
       icon: FileText,
@@ -86,6 +101,12 @@ export function Sidebar({ role, isMobileOpen, setMobileOpen }: SidebarProps) {
       title: "Imobilizados & Reservas",
       href: "/imobilizados",
       icon: Projector,
+      show: true
+    },
+    {
+      title: "Calendário Letivo",
+      href: "/calendario",
+      icon: CalendarDays,
       show: true
     },
     {

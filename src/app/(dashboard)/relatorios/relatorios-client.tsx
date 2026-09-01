@@ -341,15 +341,20 @@ export default function RelatoriosClient({ classes, subjects }: RelatoriosClient
         )}
 
         {/* Signatures Area */}
-        <div className="mt-20 pt-8 flex flex-col sm:flex-row justify-around gap-8 text-center print:flex print:flex-row">
-          <div className="w-full sm:w-64">
-            <div className="border-t border-slate-400 mx-auto mb-2"></div>
-            <p className="text-xs font-bold text-slate-800">Coordenação Pedagógica</p>
-            <p className="text-[10px] text-slate-500">EEEP Professor Luís Felipe</p>
+        <div className="mt-16 pt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center print:grid print:grid-cols-3">
+          <div className="w-full">
+            <div className="border-t border-slate-800 mx-auto mb-2 w-44"></div>
+            <p className="text-xs font-bold text-slate-800">Assinatura do Estudante</p>
+            <p className="text-[10px] text-slate-500">Data: ___/___/2026</p>
           </div>
-          <div className="w-full sm:w-64">
-            <div className="border-t border-slate-400 mx-auto mb-2"></div>
-            <p className="text-xs font-bold text-slate-800">Direção Escolar</p>
+          <div className="w-full">
+            <div className="border-t border-slate-800 mx-auto mb-2 w-44"></div>
+            <p className="text-xs font-bold text-slate-800">Assinatura do Responsável</p>
+            <p className="text-[10px] text-slate-500">CPF: ______________________</p>
+          </div>
+          <div className="w-full">
+            <div className="border-t border-slate-800 mx-auto mb-2 w-44"></div>
+            <p className="text-xs font-bold text-slate-800">Coordenação / Direção</p>
             <p className="text-[10px] text-slate-500">EEEP Professor Luís Felipe</p>
           </div>
         </div>
