@@ -204,7 +204,7 @@ export default function RACNotasClient({
       </div>
 
       {/* Printable / Report Preview Container */}
-      <div className="bg-white p-4 sm:p-8 rounded-xl border border-slate-200 shadow-sm print:shadow-none print:border-none print:p-0">
+      <div id="printable-rac-report" className="bg-white p-4 sm:p-8 rounded-xl border border-slate-200 shadow-sm print:shadow-none print:border-none print:p-0">
         {/* Official School Header */}
         <div className="text-center mb-6 border-b-2 border-slate-800 pb-4">
           <p className="text-xs uppercase tracking-widest text-slate-500 font-bold">Governo do Estado do Ceará • SEDUC</p>
@@ -324,26 +324,21 @@ export default function RACNotasClient({
           .print\\:hidden {
             display: none !important;
           }
-          .print\\:shadow-none {
-            box-shadow: none !important;
-          }
-          .print\\:border-none {
-            border: none !important;
-          }
-          .print\\:p-0 {
-            padding: 0 !important;
-          }
-          .print\\:flex {
-            display: flex !important;
-          }
-          .bg-white, .bg-white * {
+          #printable-rac-report, #printable-rac-report * {
             visibility: visible;
           }
-          .bg-white {
+          #printable-rac-report {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          .print\\:flex {
+            display: flex !important;
           }
         }
       `}} />

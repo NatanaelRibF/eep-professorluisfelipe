@@ -202,8 +202,17 @@ export async function getRACGradesByClass(params: {
         else leveCount++;
       });
 
+      // Sort infractions by severity ascending (LEVE -> MODERADO -> GRAVE)
+      // so tolerance of 4 absorbs the least severe infractions first
+      const severityWeight: Record<string, number> = { LEVE: 1, MODERADO: 2, GRAVE: 3 };
+      const sortedBySeverity = [...racs].sort((a, b) => {
+        const wA = severityWeight[a.racType?.severity?.toUpperCase() || 'LEVE'] || 1;
+        const wB = severityWeight[b.racType?.severity?.toUpperCase() || 'LEVE'] || 1;
+        return wA - wB;
+      });
+
       const toleranceCount = Math.min(4, totalCount);
-      const penalizedRACs = racs.slice(4); // RACs from index 4 (5th) onwards
+      const penalizedRACs = sortedBySeverity.slice(4); // Penalize RACs beyond the 4 tolerated
 
       let pointsLost = 0;
       let penalizedLeve = 0;

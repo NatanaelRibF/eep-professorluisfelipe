@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { MobileBottomNav } from "./mobile-bottom-nav";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -36,10 +37,12 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
           onMenuClick={() => setIsMobileOpen(true)}
         />
         
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-6 md:pb-8">
           {children}
         </main>
       </div>
+
+      <MobileBottomNav onOpenMenu={() => setIsMobileOpen(true)} />
     </div>
   );
 }
