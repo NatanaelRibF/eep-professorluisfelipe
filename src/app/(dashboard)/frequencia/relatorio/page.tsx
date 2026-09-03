@@ -1,9 +1,13 @@
-import { getClassGroups, getSubjects } from "@/actions/class.actions";
+import { getClassesForAttendance, getSubjects } from "@/actions/class.actions";
 import RelatorioClient from "./relatorio-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function FrequenciaRelatorioPage() {
-  const classes = await getClassGroups();
-  const subjects = await getSubjects();
+  const [classes, subjects] = await Promise.all([
+    getClassesForAttendance(),
+    getSubjects(),
+  ]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

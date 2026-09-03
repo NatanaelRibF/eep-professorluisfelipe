@@ -1,7 +1,64 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+
+const GESTOR_ROLES = ['Diretor', 'Coordenador', 'Secretário'];
+
+export async function getClassesForAttendance(schoolYearId?: string) {
+  try {
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    const userId = session?.user?.id;
+    const isGestor = GESTOR_ROLES.includes(userRole);
+
+    let where: any = {};
+    if (schoolYearId && schoolYearId !== 'all') {
+      where.schoolYearId = schoolYearId;
+    } else if (!schoolYearId) {
+      // By default, show classes from the configured current school year
+      const currentYear = await prisma.schoolYear.findFirst({
+        where: { isCurrent: true },
+      });
+      if (currentYear) {
+        where.schoolYearId = currentYear.id;
+      }
+    }
+
+    // If teacher (and not Núcleo Gestor), only allow viewing their own assigned classes:
+    // 1) via teacherClasses
+    // 2) via subjectTeachers
+    // 3) via pdtId (PDT Teacher)
+    if (!isGestor) {
+      if (!userId) return [];
+      where.OR = [
+        { teacherClasses: { some: { operatorId: userId } } },
+        { subjectTeachers: { some: { operatorId: userId } } },
+        { pdtId: userId },
+      ];
+    }
+
+    return await prisma.classGroup.findMany({
+      where,
+      include: {
+        grade: true,
+        schoolYear: true,
+        pdtTeacher: true,
+        teacherClasses: {
+          include: { operator: true },
+        },
+        _count: {
+          select: { enrollments: true, subjectTeachers: true },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+  } catch (error) {
+    console.error('Error in getClassesForAttendance:', error);
+    return [];
+  }
+}
 
 export async function getClassGroups(schoolYearId?: string) {
   try {
@@ -24,6 +81,9 @@ export async function getClassGroups(schoolYearId?: string) {
         grade: true,
         schoolYear: true,
         pdtTeacher: true,
+        teacherClasses: {
+          include: { operator: true },
+        },
         _count: {
           select: { enrollments: true, subjectTeachers: true },
         },
@@ -253,5 +313,51 @@ export async function getTeacherSubjects(operatorId: string) {
   } catch (error) {
     console.error('Error in getTeacherSubjects:', error);
     return [];
+  }
+}
+
+export async function assignTeacherToClass(operatorId: string, classGroupId: string) {
+  try {
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    if (!session?.user || !GESTOR_ROLES.includes(userRole)) {
+      return { success: false, error: 'Apenas o Núcleo Gestor pode vincular professores a turmas.' };
+    }
+
+    const assignment = await prisma.teacherClass.upsert({
+      where: {
+        operatorId_classGroupId: { operatorId, classGroupId },
+      },
+      update: {},
+      create: { operatorId, classGroupId },
+    });
+
+    revalidatePath('/turmas');
+    revalidatePath('/frequencia');
+    return { success: true, assignment };
+  } catch (error: any) {
+    console.error('Error in assignTeacherToClass:', error);
+    return { success: false, error: error.message || 'Erro ao vincular professor à turma' };
+  }
+}
+
+export async function removeTeacherFromClass(operatorId: string, classGroupId: string) {
+  try {
+    const session = await auth();
+    const userRole = (session?.user as any)?.role || '';
+    if (!session?.user || !GESTOR_ROLES.includes(userRole)) {
+      return { success: false, error: 'Apenas o Núcleo Gestor pode desvincular professores.' };
+    }
+
+    await prisma.teacherClass.deleteMany({
+      where: { operatorId, classGroupId },
+    });
+
+    revalidatePath('/turmas');
+    revalidatePath('/frequencia');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error in removeTeacherFromClass:', error);
+    return { success: false, error: error.message || 'Erro ao desvincular professor' };
   }
 }

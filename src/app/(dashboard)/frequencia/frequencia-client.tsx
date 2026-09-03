@@ -15,14 +15,16 @@ export default function FrequenciaClient({
   classes,
   subjects,
   mySubjectIds = [],
+  userRole = "",
 }: {
   classes: any[];
   subjects: any[];
   mySubjectIds?: string[];
+  userRole?: string;
 }) {
   const generalSubject = subjects.find(s => s.name === 'Frequência Geral Diária' || s.abbreviation === 'GERAL') || subjects[0];
   const [freqMode, setFreqMode] = useState<'DIA' | 'AULA'>('DIA');
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClass, setSelectedClass] = useState(classes.length === 1 ? classes[0].id : "");
   const [selectedSubject, setSelectedSubject] = useState(generalSubject?.id || "");
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [students, setStudents] = useState<any[]>([]);
@@ -184,18 +186,43 @@ export default function FrequenciaClient({
         </button>
       </div>
 
+      {/* No classes alert */}
+      {classes.length === 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-amber-900 space-y-2">
+          <div className="flex items-center gap-2 font-bold text-sm">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            {userRole === "Professor"
+              ? "Nenhuma turma atribuída ao seu perfil de Professor"
+              : "Nenhuma turma cadastrada no ano letivo vigente"}
+          </div>
+          <p className="text-xs text-amber-800 leading-relaxed">
+            {userRole === "Professor"
+              ? "Para registrar a chamada da aula, solicite ao Núcleo Gestor (Diretor, Coordenador ou Secretário) que vincule as suas turmas no seu cadastro de operador."
+              : "Cadastre turmas no menu de Turmas e Séries para registrar a frequência escolar."}
+          </p>
+        </div>
+      )}
+
       {/* Selector Card */}
       <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Turma *</label>
+            <label className="flex items-center justify-between text-xs font-semibold text-slate-700 uppercase mb-1">
+              <span>Turma *</span>
+              {userRole === "Professor" && classes.length > 0 && (
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full lowercase font-sans">
+                  {classes.length} {classes.length === 1 ? 'turma atribuída' : 'turmas atribuídas'}
+                </span>
+              )}
+            </label>
             <select 
               className="w-full flex h-11 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
               value={selectedClass} 
               onChange={e => setSelectedClass(e.target.value)}
+              disabled={classes.length === 0}
             >
-              <option value="">Selecione a turma...</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              <option value="">{classes.length === 0 ? "Nenhuma turma disponível" : "Selecione a turma..."}</option>
+              {classes.map(c => <option key={c.id} value={c.id}>{c.name} {c.shift ? `(${c.shift === 'MANHA' ? 'Manhã' : c.shift === 'TARDE' ? 'Tarde' : 'Noite'})` : ''}</option>)}
             </select>
           </div>
 

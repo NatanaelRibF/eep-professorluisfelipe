@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, UserCog, KeyRound, BookOpen } from "lucide-react";
+import { ArrowLeft, Save, Loader2, UserCog, KeyRound, BookOpen, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,9 +23,10 @@ interface OperadorEditClientProps {
   operator: any;
   roles: any[];
   subjects?: any[];
+  classes?: any[];
 }
 
-export default function OperadorEditClient({ operator, roles, subjects = [] }: OperadorEditClientProps) {
+export default function OperadorEditClient({ operator, roles, subjects = [], classes = [] }: OperadorEditClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -36,6 +37,8 @@ export default function OperadorEditClient({ operator, roles, subjects = [] }: O
 
   // Initial teacher subjects
   const initialSubjectIds = operator.teacherSubjects?.map((ts: any) => ts.subjectId) || [];
+  // Initial teacher classes
+  const initialClassIds = operator.teacherClasses?.map((tc: any) => tc.classGroupId) || [];
 
   const [firstName, setFirstName] = useState(initialFirstName);
   const [lastName, setLastName] = useState(initialLastName);
@@ -46,6 +49,7 @@ export default function OperadorEditClient({ operator, roles, subjects = [] }: O
   const [password, setPassword] = useState("");
   const [isActive, setIsActive] = useState(operator.isActive !== false);
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>(initialSubjectIds);
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>(initialClassIds);
 
   const selectedRoleName = roles.find((r) => r.id === roleId)?.name;
   const isProfessor = selectedRoleName === "Professor";
@@ -55,6 +59,14 @@ export default function OperadorEditClient({ operator, roles, subjects = [] }: O
       prev.includes(subjectId)
         ? prev.filter((id) => id !== subjectId)
         : [...prev, subjectId]
+    );
+  };
+
+  const handleToggleClass = (classId: string) => {
+    setSelectedClassIds((prev) =>
+      prev.includes(classId)
+        ? prev.filter((id) => id !== classId)
+        : [...prev, classId]
     );
   };
 
@@ -78,6 +90,7 @@ export default function OperadorEditClient({ operator, roles, subjects = [] }: O
         password: password.trim() !== "" ? password : undefined,
         isActive,
         subjectIds: selectedSubjectIds,
+        classIds: selectedClassIds,
       });
 
       if (!res.success) {
@@ -250,6 +263,53 @@ export default function OperadorEditClient({ operator, roles, subjects = [] }: O
                         {sub.abbreviation && (
                           <span className="text-[10px] font-mono text-slate-400">({sub.abbreviation})</span>
                         )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Atribuição de Turmas ao Professor */}
+            {(isProfessor || classes.length > 0) && (
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <School className="h-4 w-4 text-blue-600" />
+                    <Label className="font-bold text-slate-800 text-xs uppercase">
+                      Turmas Atribuídas a este Docente
+                    </Label>
+                  </div>
+                  <span className="text-[11px] font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full">
+                    {selectedClassIds.length} {selectedClassIds.length === 1 ? 'turma selecionada' : 'turmas selecionadas'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Selecione as turmas em que este professor leciona. O professor terá acesso exclusivo a estas turmas no lançamento e relatórios de frequência.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                  {classes.map((cls: any) => {
+                    const isChecked = selectedClassIds.includes(cls.id);
+                    return (
+                      <label
+                        key={cls.id}
+                        className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-blue-50 border-blue-400 text-blue-900 font-semibold shadow-xs"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleClass(cls.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-800 focus:ring-blue-500"
+                        />
+                        <span className="truncate font-semibold">{cls.name}</span>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          ({cls.shift === "MANHA" ? "Manhã" : cls.shift === "TARDE" ? "Tarde" : "Noite"})
+                        </span>
                       </label>
                     );
                   })}

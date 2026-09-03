@@ -38,6 +38,7 @@ model Operator {
   occurrences     Occurrence[]
   subjectTeachers SubjectTeacher[]
   teacherSubjects TeacherSubject[]
+  teacherClasses  TeacherClass[]
   equipmentBookings EquipmentBooking[]
   spaceBookings   SpaceBooking[]
   
@@ -127,6 +128,18 @@ model TeacherSubject {
   @@map("teacher_subjects")
 }
 
+model TeacherClass {
+  id           String     @id @default(cuid())
+  operatorId   String     @map("operator_id")
+  operator     Operator   @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  classGroupId String     @map("class_group_id")
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@unique([operatorId, classGroupId])
+  @@map("teacher_classes")
+}
+
 model ClassGroup {
   id              String           @id @default(cuid())
   name            String
@@ -142,6 +155,7 @@ model ClassGroup {
   
   enrollments     Enrollment[]
   subjectTeachers SubjectTeacher[]
+  teacherClasses  TeacherClass[]
   pdtCouncils     PDTClassCouncil[]
 
   @@unique([name, gradeId, schoolYearId])

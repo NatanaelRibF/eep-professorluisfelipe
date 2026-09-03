@@ -8,7 +8,7 @@ import { Loader2, Printer, AlertTriangle, Users, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RelatorioClient({ classes, subjects }: { classes: any[], subjects: any[] }) {
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClass, setSelectedClass] = useState(classes.length === 1 ? classes[0].id : "");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -83,15 +83,24 @@ export default function RelatorioClient({ classes, subjects }: { classes: any[],
 
   return (
     <div className="space-y-6">
+      {classes.length === 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-900 text-xs sm:text-sm">
+          ⚠️ Nenhuma turma atribuída ao seu usuário para geração de relatório de frequência.
+        </div>
+      )}
+
       <div className="bg-white p-6 rounded-lg shadow-sm border print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium mb-1">Turma *</label>
+            <label className="block text-sm font-medium mb-1">
+              Turma * {classes.length > 0 && <span className="text-xs text-slate-500 font-normal">({classes.length} disp.)</span>}
+            </label>
             <select 
               className="w-full flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
+              disabled={classes.length === 0}
             >
-              <option value="">Selecione...</option>
+              <option value="">{classes.length === 0 ? "Nenhuma turma disponível" : "Selecione..."}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>

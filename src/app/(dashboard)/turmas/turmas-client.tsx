@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { School, PlusCircle, Users, ClipboardCheck, GraduationCap, Search, Calendar, Filter, ArrowRight } from "lucide-react";
+import { School, PlusCircle, Users, ClipboardCheck, GraduationCap, Search, Calendar, Filter, ArrowRight, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -179,6 +179,19 @@ export default function TurmasClient({ initialClasses, schoolYears }: TurmasClie
                     <p className="text-[10px] text-slate-400 font-semibold uppercase">Professor Diretor de Turma (PDT)</p>
                     <p className="text-xs font-bold text-slate-800 truncate">
                       {turma.pdtTeacher?.name || "Não atribuído"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Professores Vinculados */}
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-2.5">
+                  <UserCheck className="h-4 w-4 text-blue-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase">Professores da Turma</p>
+                    <p className="text-xs font-bold text-slate-800 truncate">
+                      {turma.teacherClasses?.length > 0
+                        ? turma.teacherClasses.map((tc: any) => tc.operator?.name).filter(Boolean).join(", ")
+                        : "Nenhum docente vinculado"}
                     </p>
                   </div>
                 </div>

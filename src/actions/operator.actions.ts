@@ -43,6 +43,12 @@ export async function getOperatorById(id: string) {
             subject: true,
           },
         },
+        teacherClasses: {
+          include: {
+            classGroup: true,
+          },
+        },
+        pdtClasses: true,
       },
     });
   } catch (error) {
@@ -59,6 +65,7 @@ export async function createOperator(data: {
   roleId: string;
   avatarUrl?: string;
   subjectIds?: string[];
+  classIds?: string[];
 }) {
   try {
     const session = await auth();
@@ -75,7 +82,7 @@ export async function createOperator(data: {
     });
 
     if (existing) {
-      return { success: false, error: 'Já existe um operador cadastrado com este e-mail' };
+      return { success: false, error: 'Já existe um operador com este e-mail' };
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -94,6 +101,15 @@ export async function createOperator(data: {
               teacherSubjects: {
                 create: data.subjectIds.map((subjectId) => ({
                   subjectId,
+                })),
+              },
+            }
+          : {}),
+        ...(data.classIds && data.classIds.length > 0
+          ? {
+              teacherClasses: {
+                create: data.classIds.map((classGroupId) => ({
+                  classGroupId,
                 })),
               },
             }
@@ -120,6 +136,7 @@ export async function updateOperator(
     password?: string;
     isActive?: boolean;
     subjectIds?: string[];
+    classIds?: string[];
   }
 ) {
   try {
@@ -168,6 +185,22 @@ export async function updateOperator(
       }
     }
 
+    // Update teacher classes if provided
+    if (data.classIds !== undefined) {
+      await prisma.teacherClass.deleteMany({
+        where: { operatorId: id },
+      });
+
+      if (data.classIds.length > 0) {
+        await prisma.teacherClass.createMany({
+          data: data.classIds.map((classGroupId) => ({
+            operatorId: id,
+            classGroupId,
+          })),
+        });
+      }
+    }
+
     const operator = await prisma.operator.update({
       where: { id },
       data: updateData,
@@ -178,11 +211,18 @@ export async function updateOperator(
             subject: true,
           },
         },
+        teacherClasses: {
+          include: {
+            classGroup: true,
+          },
+        },
+        pdtClasses: true,
       },
     });
 
     revalidatePath('/operadores');
     revalidatePath(`/operadores/${id}/editar`);
+    revalidatePath('/frequencia');
     revalidatePath('/');
     return { success: true, operator };
   } catch (error: any) {
@@ -306,6 +346,12 @@ export async function getMyProfile() {
             subject: true,
           },
         },
+        teacherClasses: {
+          include: {
+            classGroup: true,
+          },
+        },
+        pdtClasses: true,
       },
     });
   } catch (error) {
